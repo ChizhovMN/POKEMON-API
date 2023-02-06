@@ -1,0 +1,50 @@
+.header {
+  display: flex;
+  padding: 1rem;
+  justify-content: space-between;
+  align-items: center;
+}
+.main {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 1.5rem;
+  justify-items: center;
+  padding: 1rem;
+  font-size: 0.8em;
+}
+.main-item {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0.3rem;
+  border-radius: 0.2rem;
+  background-color: rgba(220, 220, 220, 0.443);
+  cursor: pointer;
+}
+.main-item:hover {
+  box-shadow: inset -1px -0.3px 1.5px 1px;
+}
+.main-item:active {
+  color: gold;
+}
+.main-btns {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+.main-btn {
+  font-size: 1.2rem;
+  padding: 0.3rem 0.5rem;
+}
+.footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+}
+.root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
