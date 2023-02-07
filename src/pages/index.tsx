@@ -2,7 +2,7 @@ import Head from "next/head";
 import Image from "next/image";
 import { Inter } from "@next/font/google";
 import styles from "@/styles/Home.module.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useDeferredValue } from "react";
 import { PokemonsAPI } from "./types";
 import Footer from "./footer";
 import Header from "./header";
@@ -15,8 +15,8 @@ export const myLoader = (id: string | string[] | undefined) => {
 
 export default function Home() {
   const [pokemons, setPokemons] = useState<PokemonsAPI>();
-  const [images, setImages] = useState();
   const [count, setCount] = useState(1);
+  const allPokemons = Math.floor(pokemons?.count ? pokemons.count / 16 : 1);
   const fetcher = (link: string) => {
     fetch(link)
       .then((res) => res.json())
@@ -38,8 +38,8 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header pokemonsCounter={pokemons?.count ? pokemons.count : 0} />
-      <main>
-        <div className={styles.main}>
+      <main className={styles.main}>
+        <div className={styles["main-table"]}>
           {pokemons?.results.map((item) => {
             const urlSplit = item.url.split("/");
             const id = urlSplit[urlSplit.length - 2];
@@ -53,10 +53,10 @@ export default function Home() {
                 <Image
                   unoptimized
                   loader={() => myLoader(id)}
-                  src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`}
+                  src={myLoader(id)}
                   alt={item.name}
-                  width={200}
-                  height={200}
+                  width={150}
+                  height={150}
                 />
                 {item.name}
               </Link>
@@ -75,7 +75,32 @@ export default function Home() {
           >
             Previos Page
           </button>
-          <div>Page:{count}</div>
+          <div className={styles.pagination}>
+            <input
+              className={styles["pagination-input"]}
+              type="number"
+              name="page"
+              id="page"
+              min={1}
+              value={count}
+              onChange={(event) => {
+                if (event.target instanceof HTMLInputElement) {
+                  if (+event.target.value > allPokemons) {
+                    event.target.value = `${allPokemons}`;
+                  } else if (+event.target.value < 1) {
+                    event.target.value = "1";
+                  }
+                  const value =
+                    event.target.value === "1" ? 0 : 16 * +event.target.value;
+                  fetcher(
+                    `https://pokeapi.co/api/v2/pokemon/?limit=16&offset=${value}`
+                  );
+                  setCount(+event.target.value);
+                }
+              }}
+            />
+            <div>/ {allPokemons}</div>
+          </div>
           <button
             className={styles["main-btn"]}
             onClick={() => {
