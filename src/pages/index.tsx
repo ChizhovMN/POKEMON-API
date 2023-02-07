@@ -6,10 +6,8 @@ import { useEffect, useState, useDeferredValue } from "react";
 import { Pokemon, PokemonsAPI } from "./types";
 import Header from "./header";
 import Link from "next/link";
-import next from "next";
 import Footer from "./footer";
 import PageBtn from "./pageBtn";
-import BtnsWrapper from "./btnsWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 export const myLoader = (id: string | string[] | undefined) => {

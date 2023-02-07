@@ -48,7 +48,7 @@ export default function PokemonPage() {
         <div className={styles["pokemon-info"]}>
           <h2>{pokemonInfo?.name.toUpperCase()}</h2>
           <p>Weight: {pokemonInfo?.weight} kg</p>
-          <Collapse className={styles.collapse} accordion={true}>
+          <Collapse className={styles.collapse}>
             <Panel header="STATS" key="1" className={styles["collapse-item"]}>
               <ol className={styles["collapse-list"]}>
                 {pokemonInfo?.stats.map((item, index) => {

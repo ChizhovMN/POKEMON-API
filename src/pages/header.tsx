@@ -1,8 +1,8 @@
 import React from "react";
 import styles from "@/styles/Home.module.css";
-import PageBtn from "./pageBtn";
 import { AudioOutlined } from "@ant-design/icons";
 import { Input, Space } from "antd";
+import PageBtn from "./pageBtn";
 
 const { Search } = Input;
 
@@ -30,7 +30,6 @@ export default function Header({
   handleClickPageView: () => void;
   handleSearch: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
-  const onSearch = (value: string) => console.log(value);
   return (
     <header className={styles.header}>
       <h1>POKEMONS API</h1>
@@ -38,7 +37,7 @@ export default function Header({
       <div className={styles["header-btns"]}>
         <Search
           placeholder="input search text"
-          onSearch={onSearch}
+          onSearch={(value) => console.log(value)}
           style={{ width: 200 }}
           onChange={handleSearch}
         />
