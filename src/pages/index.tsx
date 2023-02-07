@@ -4,9 +4,12 @@ import { Inter } from "@next/font/google";
 import styles from "@/styles/Home.module.css";
 import { useEffect, useState, useDeferredValue } from "react";
 import { PokemonsAPI } from "./types";
-import Footer from "./footer";
 import Header from "./header";
 import Link from "next/link";
+import next from "next";
+import Footer from "./footer";
+import PageBtn from "./pageBtn";
+import BtnsWrapper from "./btnsWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 export const myLoader = (id: string | string[] | undefined) => {
@@ -15,6 +18,7 @@ export const myLoader = (id: string | string[] | undefined) => {
 
 export default function Home() {
   const [pokemons, setPokemons] = useState<PokemonsAPI>();
+  const [view, setView] = useState<"pages" | "all">("pages");
   const [count, setCount] = useState(1);
   const allPokemons = Math.floor(pokemons?.count ? pokemons.count / 16 : 1);
   const fetcher = (link: string) => {
@@ -29,6 +33,65 @@ export default function Home() {
     () => fetcher("https://pokeapi.co/api/v2/pokemon/?limit=16&offset=0"),
     []
   );
+  const handleClickViewAll = () => {
+    fetcher("https://pokeapi.co/api/v2/pokemon/?limit=10000&offset=0");
+    setView("all");
+  };
+  const handleCLickViewPage = () => {
+    fetcher("https://pokeapi.co/api/v2/pokemon/?limit=16&offset=0");
+    setView("pages");
+  };
+  const handleClickNext = () => {
+    if (pokemons?.next) {
+      fetcher(pokemons?.next);
+      setCount(count + 1);
+    }
+  };
+  const handleClickPrevious = () => {
+    if (pokemons?.previous) {
+      fetcher(pokemons?.previous);
+      setCount(count - 1);
+    }
+  };
+  const PokemonPages = (
+    <div className={styles["main-btns"]}>
+      <PageBtn
+        btnName={"Previous page"}
+        handleClick={() => handleClickPrevious()}
+      />
+      <div className={styles.pagination}>
+        <input
+          className={styles["pagination-input"]}
+          type="number"
+          name="page"
+          id="page"
+          min={1}
+          value={count}
+          onChange={(event) => {
+            if (event.target instanceof HTMLInputElement) {
+              if (+event.target.value > allPokemons) {
+                event.target.value = `${allPokemons}`;
+              } else if (+event.target.value < 1) {
+                event.target.value = "1";
+              }
+              const value =
+                event.target.value === "1" ? 0 : 16 * +event.target.value;
+              fetcher(
+                `https://pokeapi.co/api/v2/pokemon/?limit=16&offset=${value}`
+              );
+              setCount(+event.target.value);
+            }
+          }}
+        />
+        <div>/ {allPokemons}</div>
+      </div>
+      <PageBtn btnName={"Next page"} handleClick={() => handleClickNext()} />
+    </div>
+  );
+  const viewPort = {
+    all: <></>,
+    pages: PokemonPages,
+  };
   return (
     <>
       <Head>
@@ -37,7 +100,13 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Header pokemonsCounter={pokemons?.count ? pokemons.count : 0} />
+      <Header
+        pokemonsCounter={pokemons?.count ? pokemons.count : 0}
+        btnNameAllView={"ALL"}
+        btnNamePageView={"PAGE"}
+        handleClickAllView={handleClickViewAll}
+        handleClickPageView={handleCLickViewPage}
+      />
       <main className={styles.main}>
         <div className={styles["main-table"]}>
           {pokemons?.results.map((item) => {
@@ -63,18 +132,13 @@ export default function Home() {
             );
           })}
         </div>
-        <div className={styles["main-btns"]}>
-          <button
-            className={styles["main-btn"]}
-            onClick={() => {
-              if (pokemons?.previous) {
-                fetcher(pokemons?.previous);
-                setCount(count - 1);
-              }
-            }}
-          >
-            Previos Page
-          </button>
+        {viewPort[view]}
+        {/* <BtnsWrapper
+          styleWrapper={"main-btns"}
+          style={"main-btn"}
+          btnName={"Previous page"}
+          handleClick={() => handleClickPrevious()}
+        >
           <div className={styles.pagination}>
             <input
               className={styles["pagination-input"]}
@@ -101,18 +165,7 @@ export default function Home() {
             />
             <div>/ {allPokemons}</div>
           </div>
-          <button
-            className={styles["main-btn"]}
-            onClick={() => {
-              if (pokemons?.next) {
-                fetcher(pokemons?.next);
-                setCount(count + 1);
-              }
-            }}
-          >
-            Next Page
-          </button>
-        </div>
+        </BtnsWrapper> */}
       </main>
       <Footer />
     </>

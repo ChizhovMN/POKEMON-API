@@ -13,7 +13,6 @@ const { Panel } = Collapse;
 export default function PokemonPage() {
   const router = useRouter();
   const { id } = router.query;
-  console.log("ROUTER", id);
   const [pokemonInfo, setPokemonInfo] = useState<PokemonType>();
   const pokemonURL = `https://pokeapi.co/api/v2/pokemon/${id}/`;
   const pokemonImgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;

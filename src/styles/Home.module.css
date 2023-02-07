@@ -4,11 +4,16 @@
   justify-content: space-between;
   align-items: center;
 }
+.header-btns {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
 .main {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  justify-content: space-between;
+  justify-content: center;
 }
 .main-table {
   display: grid;
