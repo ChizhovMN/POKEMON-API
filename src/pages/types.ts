@@ -143,7 +143,7 @@ interface PokemonAbilities {
   is_hidden: boolean;
   slot: number;
 }
-interface Pokemon {
+export interface Pokemon {
   name: string;
   url: string;
 }
