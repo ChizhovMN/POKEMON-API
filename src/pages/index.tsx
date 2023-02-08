@@ -1,77 +1,85 @@
 import Head from "next/head";
 import Image from "next/image";
-import { Inter } from "@next/font/google";
 import styles from "@/styles/Home.module.css";
 import { useEffect, useState, useDeferredValue } from "react";
-import { Pokemon, PokemonsAPI } from "./types";
+import { Pokemon, PokemonLink, PokemonsAPI } from "./types";
 import Header from "./header";
 import Link from "next/link";
 import Footer from "./footer";
 import PageBtn from "./pageBtn";
+import useSWR from "swr";
+import { GetStaticProps, InferGetStaticPropsType } from "next";
 
-const inter = Inter({ subsets: ["latin"] });
 export const myLoader = (id: string | string[] | undefined) => {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
 };
 
-export default function Home() {
-  const [pokemons, setPokemons] = useState<PokemonsAPI>();
-  const [pokemonsResult, setPokemonsResult] = useState<Pokemon[]>();
+export const getStaticProps: GetStaticProps<{
+  serverData: PokemonsAPI;
+}> = async (context) => {
+  const res = await fetch(
+    "https://pokeapi.co/api/v2/pokemon/?limit=16&offset=0"
+  );
+  const serverData: PokemonsAPI = await res.json();
+  return {
+    props: {
+      serverData,
+    },
+  };
+};
+
+const getData = async (link: string) => {
+  const response = await fetch(link);
+  return await response.json();
+};
+
+export default function Home({
+  serverData,
+}: InferGetStaticPropsType<typeof getStaticProps>) {
+  const [pokemonsData, setPokemonsData] = useState(serverData);
+  const [pokemons, setPokemons] = useState(serverData.results);
   const [view, setView] = useState<"pages" | "all">("pages");
-  const [count, setCount] = useState(1);
-  const allPokemons = Math.floor(pokemons?.count ? pokemons.count / 16 : 1);
-  const fetcher = (link: string) => {
-    fetch(link)
+  const [page, setPage] = useState(0);
+  const fetcher = (offset: number, limit = 16) => {
+    fetch(`https://pokeapi.co/api/v2/pokemon/?limit=${limit}&offset=${offset}`)
       .then((res) => res.json())
       .then((data: PokemonsAPI) => {
-        setPokemons(data);
-        setPokemonsResult(data.results);
-      })
-      .catch((e) => console.log(e));
+        setPokemonsData(data);
+        setPokemons(data.results);
+      });
   };
-  useEffect(
-    () => fetcher("https://pokeapi.co/api/v2/pokemon/?limit=16&offset=0"),
-    []
+  const { data: results } = useSWR(
+    "https://pokeapi.co/api/v2/pokemon/?limit=16&offset=0",
+    () => fetcher(0, 10000)
   );
+  console.log("DATAPOKEMONS", results);
+  const pokemonsPage = Math.floor(pokemonsData.count / 16) + 1;
   const handleClickViewAll = () => {
-    fetcher("https://pokeapi.co/api/v2/pokemon/?limit=10000&offset=0");
+    fetcher(0, 10000);
     setView("all");
   };
   const handleCLickViewPage = () => {
-    fetcher("https://pokeapi.co/api/v2/pokemon/?limit=16&offset=0");
+    fetcher(page * 16);
     setView("pages");
   };
   const handleSearchField = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target instanceof HTMLInputElement) {
-      fetch("https://pokeapi.co/api/v2/pokemon/?limit=10000&offset=0")
-        .then((res) => res.json())
-        .then((data: PokemonsAPI) => {
-          const searchedPokemons = data.results.filter((item) =>
-            item.name.toLowerCase().includes(event.target.value.toLowerCase())
-          );
-          setPokemonsResult(searchedPokemons);
-          setView("all");
-        });
-    }
+    // fetch()
   };
   const handleClickNext = () => {
-    if (pokemons?.next) {
-      fetcher(pokemons?.next);
-      setCount(count + 1);
+    if (pokemonsData.next !== null) {
+      fetcher((page + 1) * 16);
+      setPage(page + 1);
     }
   };
   const handleClickPrevious = () => {
-    if (pokemons?.previous) {
-      fetcher(pokemons?.previous);
-      setCount(count - 1);
+    if (pokemonsData.previous !== null) {
+      fetcher((page - 1) * 16);
+      setPage(page - 1);
     }
   };
-  const PokemonPages = (
+  const PaginationField = (
     <div className={styles["main-btns"]}>
-      <PageBtn
-        btnName={"Previous page"}
-        handleClick={() => handleClickPrevious()}
-      />
+      <PageBtn btnName={"<"} handleClick={() => handleClickPrevious()} />
       <div className={styles.pagination}>
         <input
           className={styles["pagination-input"]}
@@ -79,31 +87,17 @@ export default function Home() {
           name="page"
           id="page"
           min={1}
-          value={count}
-          onChange={(event) => {
-            if (event.target instanceof HTMLInputElement) {
-              if (+event.target.value > allPokemons) {
-                event.target.value = `${allPokemons}`;
-              } else if (+event.target.value < 1) {
-                event.target.value = "1";
-              }
-              const value =
-                event.target.value === "1" ? 0 : 16 * +event.target.value;
-              fetcher(
-                `https://pokeapi.co/api/v2/pokemon/?limit=16&offset=${value}`
-              );
-              setCount(+event.target.value);
-            }
-          }}
+          value={page + 1}
+          onChange={(event) => {}}
         />
-        <div>/ {allPokemons}</div>
+        <div>/ {pokemonsPage}</div>
       </div>
-      <PageBtn btnName={"Next page"} handleClick={() => handleClickNext()} />
+      <PageBtn btnName={">"} handleClick={() => handleClickNext()} />
     </div>
   );
   const viewPort = {
     all: <></>,
-    pages: PokemonPages,
+    pages: PaginationField,
   };
   return (
     <>
@@ -114,7 +108,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header
-        pokemonsCounter={pokemons?.count ? pokemons.count : 0}
+        pokemonsCounter={pokemonsData.count}
         btnNameAllView={"ALL"}
         btnNamePageView={"PAGE"}
         handleClickAllView={handleClickViewAll}
@@ -123,32 +117,42 @@ export default function Home() {
       />
       <main className={styles.main}>
         <div className={styles["main-table"]}>
-          {pokemonsResult?.map((item) => {
-            const urlSplit = item.url.split("/");
-            const id = urlSplit[urlSplit.length - 2];
-            return (
-              <Link
-                key={id}
-                id={id}
-                className={styles["main-item"]}
-                href={`pokemon/${id}`}
-              >
-                <Image
-                  unoptimized
-                  loader={() => myLoader(id)}
-                  src={myLoader(id)}
-                  alt={item.name}
-                  width={150}
-                  height={150}
-                />
-                {item.name}
-              </Link>
-            );
-          })}
+          {view === "all"
+            ? CreatePokemonTable(pokemons)
+            : CreatePokemonTable(pokemons)}
         </div>
         {viewPort[view]}
       </main>
       <Footer />
     </>
   );
+}
+
+function PokemonItem({ id, name }: { id: string; name: string }) {
+  return (
+    <Link
+      key={id}
+      id={id}
+      className={styles["main-item"]}
+      href={`pokemon/${id}`}
+    >
+      <Image
+        unoptimized
+        loader={() => myLoader(id)}
+        src={myLoader(id)}
+        alt={name}
+        width={150}
+        height={150}
+      />
+      {name}
+    </Link>
+  );
+}
+
+function CreatePokemonTable(arr: PokemonLink[]) {
+  return arr.map((item) => {
+    const urlSplit = item.url.split("/");
+    const id = urlSplit[urlSplit.length - 2];
+    return <PokemonItem key={id} id={id} name={item.name} />;
+  });
 }
