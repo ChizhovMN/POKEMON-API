@@ -1,19 +1,9 @@
 import React from "react";
 import styles from "@/styles/Home.module.css";
-import { AudioOutlined } from "@ant-design/icons";
-import { Input, Space } from "antd";
+import { Input } from "antd";
 import PageBtn from "./pageBtn";
 
 const { Search } = Input;
-
-const suffix = (
-  <AudioOutlined
-    style={{
-      fontSize: 16,
-      color: "#1890ff",
-    }}
-  />
-);
 
 export default function Header({
   pokemonsCounter,
@@ -28,7 +18,7 @@ export default function Header({
   btnNamePageView: string;
   handleClickAllView: () => void;
   handleClickPageView: () => void;
-  handleSearch: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleSearch: () => void;
 }) {
   return (
     <header className={styles.header}>

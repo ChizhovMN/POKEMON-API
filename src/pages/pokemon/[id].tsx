@@ -4,34 +4,32 @@ import styles from "@/styles/pokemon.module.css";
 import Link from "next/link";
 import Footer from "../footer";
 import Image from "next/image";
-import { myLoader } from "..";
-import { PokemonType, PokemonsAPI } from "../types";
+import { fetcher, myLoader } from "..";
 import { Collapse } from "antd";
+import useSWR from "swr";
+import { PokemonType } from "../types";
 
 const { Panel } = Collapse;
 
 export default function PokemonPage() {
   const router = useRouter();
-  const { id } = router.query;
-  const [pokemonInfo, setPokemonInfo] = useState<PokemonType>();
-  const pokemonURL = `https://pokeapi.co/api/v2/pokemon/${id}/`;
-  const pokemonImgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
-  const fetcher = (link: string) => {
-    fetch(link)
-      .then((res) => res.json())
-      .then((data: PokemonType) => {
-        setPokemonInfo(data);
-      })
-      .catch((e) => console.log(e));
-  };
-  useEffect(() => fetcher(pokemonURL), []);
+  const urlSplit = router.asPath.split("/");
+  const id = urlSplit[2];
+  // const [pokemon, setPokemon] = useState(pokemonData);
+  const pokemonsEndpoint = `https://pokeapi.co/api/v2/pokemon/${id}/`;
+  const { data }: { data: PokemonType } = useSWR(pokemonsEndpoint, fetcher);
+  useEffect(() => {}, [data]);
   return (
     <>
       <header className={styles.header}>
-        <Link href={"/"}>
+        <Link
+          href={{
+            pathname: "/",
+          }}
+        >
           <h1>POKEMONS API</h1>
         </Link>
-        <div>POKEMON: {pokemonInfo?.name.toUpperCase()}</div>
+        <div>POKEMON: {data?.name.toUpperCase()}</div>
       </header>
       <main className={styles.main}>
         <div className={styles.pokemon}>
@@ -40,18 +38,18 @@ export default function PokemonPage() {
             unoptimized
             loader={() => myLoader(id)}
             src={myLoader(id)}
-            alt={pokemonInfo ? pokemonInfo.name : "Unnamed"}
+            alt={data ? data.name : "Unnamed"}
             width={600}
             height={600}
           />
         </div>
         <div className={styles["pokemon-info"]}>
-          <h2>{pokemonInfo?.name.toUpperCase()}</h2>
-          <p>Weight: {pokemonInfo?.weight} kg</p>
+          <h2>{data?.name.toUpperCase()}</h2>
+          <p>Weight: {data?.weight} kg</p>
           <Collapse className={styles.collapse}>
             <Panel header="STATS" key="1" className={styles["collapse-item"]}>
               <ol className={styles["collapse-list"]}>
-                {pokemonInfo?.stats.map((item, index) => {
+                {data?.stats.map((item, index) => {
                   return (
                     <li className={styles["list-item"]} key={index}>
                       {item.stat.name} - {item.base_stat}
@@ -62,7 +60,7 @@ export default function PokemonPage() {
             </Panel>
             <Panel header="MOVES" key="2" className={styles["collapse-item"]}>
               <ol className={styles["collapse-list"]}>
-                {pokemonInfo?.moves.map((item, index) => {
+                {data?.moves.map((item, index) => {
                   return (
                     <li className={styles["list-item"]} key={index}>
                       {item.move.name}
@@ -73,7 +71,7 @@ export default function PokemonPage() {
             </Panel>
             <Panel header="TYPES" key="3" className={styles["collapse-item"]}>
               <ol className={styles["collapse-list"]}>
-                {pokemonInfo?.types.map((item, index) => {
+                {data?.types.map((item, index) => {
                   return (
                     <li className={styles["list-item"]} key={index}>
                       {item.type.name}

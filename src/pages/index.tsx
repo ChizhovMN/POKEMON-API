@@ -1,8 +1,8 @@
 import Head from "next/head";
 import Image from "next/image";
 import styles from "@/styles/Home.module.css";
-import { useEffect, useState, useDeferredValue } from "react";
-import { Pokemon, PokemonLink, PokemonsAPI } from "./types";
+import { ReactNode, useEffect, useState } from "react";
+import { PokemonLink, PokemonsAPI } from "./types";
 import Header from "./header";
 import Link from "next/link";
 import Footer from "./footer";
@@ -16,7 +16,7 @@ export const myLoader = (id: string | string[] | undefined) => {
 
 export const getStaticProps: GetStaticProps<{
   serverData: PokemonsAPI;
-}> = async (context) => {
+}> = async () => {
   const res = await fetch(
     "https://pokeapi.co/api/v2/pokemon/?limit=16&offset=0"
   );
@@ -28,53 +28,58 @@ export const getStaticProps: GetStaticProps<{
   };
 };
 
-const getData = async (link: string) => {
-  const response = await fetch(link);
-  return await response.json();
-};
+export const fetcher = (link: string) => fetch(link).then((res) => res.json());
 
 export default function Home({
   serverData,
 }: InferGetStaticPropsType<typeof getStaticProps>) {
   const [pokemonsData, setPokemonsData] = useState(serverData);
-  const [pokemons, setPokemons] = useState(serverData.results);
   const [view, setView] = useState<"pages" | "all">("pages");
-  const [page, setPage] = useState(0);
-  const fetcher = (offset: number, limit = 16) => {
-    fetch(`https://pokeapi.co/api/v2/pokemon/?limit=${limit}&offset=${offset}`)
-      .then((res) => res.json())
-      .then((data: PokemonsAPI) => {
-        setPokemonsData(data);
-        setPokemons(data.results);
-      });
-  };
-  const { data: results } = useSWR(
-    "https://pokeapi.co/api/v2/pokemon/?limit=16&offset=0",
-    () => fetcher(0, 10000)
+  const [search, setSearch] = useState("");
+  const [offset, setOffset] = useState(0);
+  const [lastPage, setLastPage] = useState(offset);
+  const [limit, setLimit] = useState(16);
+  const { data } = useSWR(
+    `https://pokeapi.co/api/v2/pokemon/?limit=${limit}&offset=${offset}`,
+    fetcher
   );
-  console.log("DATAPOKEMONS", results);
-  const pokemonsPage = Math.floor(pokemonsData.count / 16) + 1;
+  useEffect(() => {
+    if (data) {
+      setPokemonsData(data);
+      console.log("SWR", data);
+    }
+  }, [data, pokemonsData]);
+  const searchField = pokemonsData.results.filter((item) =>
+    item.name.startsWith(search.trim())
+  );
+  const pokemonsPage = Math.floor(
+    search ? searchField.length / 16 : serverData.count / 16
+  );
   const handleClickViewAll = () => {
-    fetcher(0, 10000);
+    setLimit(10000);
+    setOffset(0);
     setView("all");
   };
   const handleCLickViewPage = () => {
-    fetcher(page * 16);
+    setLimit(16);
+    setOffset(lastPage);
     setView("pages");
   };
   const handleSearchField = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // fetch()
+    setSearch(event.target.value);
   };
   const handleClickNext = () => {
-    if (pokemonsData.next !== null) {
-      fetcher((page + 1) * 16);
-      setPage(page + 1);
+    if (search) return;
+    if (data.count && offset < data.count - 16) {
+      setOffset(offset + 16);
+      setLastPage(offset + 16);
     }
   };
   const handleClickPrevious = () => {
-    if (pokemonsData.previous !== null) {
-      fetcher((page - 1) * 16);
-      setPage(page - 1);
+    if (search) return;
+    if (offset > 0) {
+      setOffset(offset - 16);
+      setLastPage(offset - 16);
     }
   };
   const PaginationField = (
@@ -87,10 +92,18 @@ export default function Home({
           name="page"
           id="page"
           min={1}
-          value={page + 1}
-          onChange={(event) => {}}
+          value={offset / 16 + 1}
+          onChange={(event) => {
+            if (search) return;
+            if (
+              1 <= +event.target.value &&
+              +event.target.value <= pokemonsPage + 1
+            ) {
+              setOffset(Number(event.target.value) * 16 - 16);
+            }
+          }}
         />
-        <div>/ {pokemonsPage}</div>
+        <div>/ {pokemonsPage + 1}</div>
       </div>
       <PageBtn btnName={">"} handleClick={() => handleClickNext()} />
     </div>
@@ -108,7 +121,7 @@ export default function Home({
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header
-        pokemonsCounter={pokemonsData.count}
+        pokemonsCounter={search ? searchField.length : serverData.count}
         btnNameAllView={"ALL"}
         btnNamePageView={"PAGE"}
         handleClickAllView={handleClickViewAll}
@@ -117,9 +130,7 @@ export default function Home({
       />
       <main className={styles.main}>
         <div className={styles["main-table"]}>
-          {view === "all"
-            ? CreatePokemonTable(pokemons)
-            : CreatePokemonTable(pokemons)}
+          {CreatePokemonTable(search ? searchField : pokemonsData.results)}
         </div>
         {viewPort[view]}
       </main>
@@ -149,7 +160,7 @@ function PokemonItem({ id, name }: { id: string; name: string }) {
   );
 }
 
-function CreatePokemonTable(arr: PokemonLink[]) {
+function CreatePokemonTable(arr: PokemonLink[]): ReactNode {
   return arr.map((item) => {
     const urlSplit = item.url.split("/");
     const id = urlSplit[urlSplit.length - 2];
