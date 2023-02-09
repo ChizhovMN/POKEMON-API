@@ -83,7 +83,7 @@ export default function PokemonPage() {
           </Collapse>
         </div>
       </main>
-      <Footer></Footer>
+      <Footer />
     </>
   );
 }
