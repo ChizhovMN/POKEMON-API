@@ -184,3 +184,12 @@ interface MovesType {
     version_group: Pokemon;
   }[];
 }
+
+export type HeaderProps = {
+  pokemonsCounter: number;
+  btnNameAllView: string;
+  btnNamePageView: string;
+  handleClickAllView: () => void;
+  handleClickPageView: () => void;
+  handleSearch: () => void;
+};

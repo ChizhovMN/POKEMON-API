@@ -2,6 +2,7 @@ import React from "react";
 import styles from "@/styles/Home.module.css";
 import { Input } from "antd";
 import PageBtn from "./pageBtn";
+import { HeaderProps } from "./types";
 
 const { Search } = Input;
 
@@ -12,14 +13,7 @@ export default function Header({
   handleClickAllView,
   handleClickPageView,
   handleSearch,
-}: {
-  pokemonsCounter: number;
-  btnNameAllView: string;
-  btnNamePageView: string;
-  handleClickAllView: () => void;
-  handleClickPageView: () => void;
-  handleSearch: () => void;
-}) {
+}: HeaderProps) {
   return (
     <header className={styles.header}>
       <h1>POKEMONS API</h1>

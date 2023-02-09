@@ -1,14 +1,13 @@
 import Head from "next/head";
-import Image from "next/image";
 import styles from "@/styles/Home.module.css";
-import { ReactNode, useEffect, useState } from "react";
-import { PokemonLink, PokemonsAPI } from "./types";
+import { useEffect, useState } from "react";
+import { PokemonsAPI } from "./types";
 import Header from "./header";
-import Link from "next/link";
 import Footer from "./footer";
 import PageBtn from "./pageBtn";
 import useSWR from "swr";
 import { GetStaticProps, InferGetStaticPropsType } from "next";
+import CreatePokemonTable from "./components/pokemonTable";
 
 export const myLoader = (id: string | string[] | undefined) => {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
@@ -137,33 +136,4 @@ export default function Home({
       <Footer />
     </>
   );
-}
-
-function PokemonItem({ id, name }: { id: string; name: string }) {
-  return (
-    <Link
-      key={id}
-      id={id}
-      className={styles["main-item"]}
-      href={`pokemon/${id}`}
-    >
-      <Image
-        unoptimized
-        loader={() => myLoader(id)}
-        src={myLoader(id)}
-        alt={name}
-        width={150}
-        height={150}
-      />
-      {name}
-    </Link>
-  );
-}
-
-function CreatePokemonTable(arr: PokemonLink[]): ReactNode {
-  return arr.map((item) => {
-    const urlSplit = item.url.split("/");
-    const id = urlSplit[urlSplit.length - 2];
-    return <PokemonItem key={id} id={id} name={item.name} />;
-  });
 }
