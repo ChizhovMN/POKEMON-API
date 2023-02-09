@@ -41,40 +41,34 @@ export default function PokemonPage() {
           />
         </div>
         <div className={styles["pokemon-info"]}>
-          <h2>{data?.name.toUpperCase()}</h2>
-          <p>Weight: {data?.weight} kg</p>
+          <h2>{data.name.toUpperCase()}</h2>
+          <p>Weight: {data.weight} kg</p>
           <Collapse className={styles.collapse}>
             <Panel header="STATS" key="1" className={styles["collapse-item"]}>
               <ol className={styles["collapse-list"]}>
-                {data?.stats.map((item, index) => {
-                  return (
-                    <li className={styles["list-item"]} key={index}>
-                      {item.stat.name} - {item.base_stat}
-                    </li>
-                  );
-                })}
+                {data.stats.map((item, index) => (
+                  <li className={styles["list-item"]} key={index}>
+                    {item.stat.name} - {item.base_stat}
+                  </li>
+                ))}
               </ol>
             </Panel>
             <Panel header="MOVES" key="2" className={styles["collapse-item"]}>
               <ol className={styles["collapse-list"]}>
-                {data?.moves.map((item, index) => {
-                  return (
-                    <li className={styles["list-item"]} key={index}>
-                      {item.move.name}
-                    </li>
-                  );
-                })}
+                {data.moves.map((item, index) => (
+                  <li className={styles["list-item"]} key={index}>
+                    {item.move.name}
+                  </li>
+                ))}
               </ol>
             </Panel>
             <Panel header="TYPES" key="3" className={styles["collapse-item"]}>
               <ol className={styles["collapse-list"]}>
-                {data?.types.map((item, index) => {
-                  return (
-                    <li className={styles["list-item"]} key={index}>
-                      {item.type.name}
-                    </li>
-                  );
-                })}
+                {data.types.map((item, index) => (
+                  <li className={styles["list-item"]} key={index}>
+                    {item.type.name}
+                  </li>
+                ))}
               </ol>
             </Panel>
           </Collapse>
