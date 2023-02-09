@@ -45,9 +45,8 @@ export default function Home({
   useEffect(() => {
     if (data) {
       setPokemonsData(data);
-      console.log("SWR", data);
     }
-  }, [data, pokemonsData]);
+  }, [data]);
   const searchField = pokemonsData.results.filter((item) =>
     item.name.startsWith(search.trim())
   );

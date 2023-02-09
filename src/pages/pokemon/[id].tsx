@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import styles from "@/styles/pokemon.module.css";
 import Link from "next/link";
 import Footer from "../footer";
@@ -13,12 +13,9 @@ const { Panel } = Collapse;
 
 export default function PokemonPage() {
   const router = useRouter();
-  const urlSplit = router.asPath.split("/");
-  const id = urlSplit[2];
-  // const [pokemon, setPokemon] = useState(pokemonData);
+  const { id } = router.query;
   const pokemonsEndpoint = `https://pokeapi.co/api/v2/pokemon/${id}/`;
   const { data }: { data: PokemonType } = useSWR(pokemonsEndpoint, fetcher);
-  useEffect(() => {}, [data]);
   return (
     <>
       <header className={styles.header}>

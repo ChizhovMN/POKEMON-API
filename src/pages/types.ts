@@ -27,109 +27,43 @@ export interface PokemonType {
   order: number;
   past_types: [];
   species: Pokemon;
-  sprites: {
-    back_default: string | null;
-    back_female: string | null;
-    back_shiny: string | null;
-    back_shiny_female: string | null;
-    front_default: string | null;
-    front_female: string | null;
-    front_shiny: string | null;
-    front_shiny_shemale: string | null;
+  sprites: PartialGeneration & {
     other: {
-      dream_world: Pick<Generation, "front_default" | "front_female">;
-      home: Pick<
-        Generation,
-        "front_default" | "front_female" | "front_shiny" | "front_shiny_female"
-      >;
-      official_artwork: Pick<Generation, "front_default" | "front_shiny">;
+      dream_world: PartialGeneration;
+      home: PartialGeneration;
+      official_artwork: PartialGeneration;
     };
     versions: {
       "generation-i": {
-        "red-blue": PokemonBackColor;
-        yellow: PokemonBackColor;
+        "red-blue": PartialGeneration;
+        yellow: PartialGeneration;
       };
       "generation-ii": {
-        crystal: {
-          back_default: string | null;
-          back_shiny: string | null;
-          back_shiny_transparent: string | null;
-          back_transparent: string | null;
-          front_default: string | null;
-          front_shiny: string | null;
-          front_shiny_transparent: string | null;
-          front_transparent: string | null;
-        };
-        gold: {
-          back_default: string | null;
-          back_shiny: string | null;
-          front_default: string | null;
-          front_shiny: string | null;
-          front_transparent: string | null;
-        };
-        silver: {
-          back_default: string | null;
-          back_shiny: string | null;
-          front_default: string | null;
-          front_shiny: string | null;
-          front_transparent: string | null;
-        };
+        crystal: PartialGeneration;
+        gold: PartialGeneration;
+        silver: PartialGeneration;
       };
       "generation-iii": {
-        emerald: Pick<Generation, "front_default" | "front_shiny">;
-        "firered-leafgreen": Pick<
-          Generation,
-          "back_default" | "back_shiny" | "front_default" | "front_shiny"
-        >;
-        "ruby-sapphire": Pick<
-          Generation,
-          "back_default" | "back_shiny" | "front_default" | "front_shiny"
-        >;
+        emerald: PartialGeneration;
+        "firered-leafgreen": PartialGeneration;
+        "ruby-sapphire": PartialGeneration;
       };
       "generation-iv": {
-        "diamond-pearl": Generation;
-        "heartgold-soulsilver": Generation;
-        platinum: Generation;
+        "diamond-pearl": PartialGeneration;
+        "heartgold-soulsilver": PartialGeneration;
+        platinum: PartialGeneration;
       };
-      "generation-v": {
-        animated: Generation;
-        back_default: string | null;
-        back_female: string | null;
-        back_shiny: string | null;
-        back_shiny_female: string | null;
-        front_default: string | null;
-        front_female: string | null;
-        front_shiny: string | null;
-        front_shiny_female: string | null;
-      };
+      "generation-v": PartialGeneration;
       "generation-vi": {
-        omegaruby_alphasapphire: Pick<
-          Generation,
-          | "front_default"
-          | "front_female"
-          | "front_shiny"
-          | "front_shiny_female"
-        >;
-        "x-y": Pick<
-          Generation,
-          | "front_default"
-          | "front_female"
-          | "front_shiny"
-          | "front_shiny_female"
-        >;
+        omegaruby_alphasapphire: PartialGeneration;
+        "x-y": PartialGeneration;
       };
       "generation-vii": {
-        icons: Pick<Generation, "front_default" | "front_female">;
-        "ultra-sun-ultra-moon": Pick<
-          Generation,
-          | "front_default"
-          | "front_female"
-          | "front_shiny"
-          | "front_shiny_female"
-        >;
+        icons: PartialGeneration;
+        "ultra-sun-ultra-moon": PartialGeneration;
       };
       "generation-viii": {
-        icons: Pick<Generation, "front_default" | "front_female">;
+        icons: PartialGeneration;
       };
     };
   };
@@ -147,15 +81,6 @@ export interface Pokemon {
   name: string;
   url: string;
 }
-
-interface PokemonBackColor {
-  back_default: string | null;
-  back_gray: string | null;
-  back_transparent: string | null;
-  front_default: string | null;
-  front_gray: string | null;
-  front_transparent: string | null;
-}
 interface Generation {
   back_default: string | null;
   back_female: string | null;
@@ -165,7 +90,14 @@ interface Generation {
   front_female: string | null;
   front_shiny: string | null;
   front_shiny_female: string | null;
+  back_gray: string | null;
+  front_gray: string | null;
+  back_transparent: string | null;
+  back_shiny_transparent: string | null;
+  front_transparent: string | null;
+  front_shiny_transparent: string | null;
 }
+type PartialGeneration = Partial<Generation>;
 
 interface StatsType {
   base_stat: number;
