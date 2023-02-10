@@ -2,7 +2,8 @@ import React from "react";
 import styles from "@/styles/Home.module.css";
 import { Input } from "antd";
 import PageBtn from "./pageBtn";
-import { HeaderProps } from "./types";
+import { HeaderProps } from "../types";
+import Link from "next/link";
 
 const { Search } = Input;
 
@@ -16,7 +17,9 @@ export default function Header({
 }: HeaderProps) {
   return (
     <header className={styles.header}>
-      <h1>POKEMONS API</h1>
+      <h1>
+        <Link href="/">POKEMONS API</Link>
+      </h1>
 
       <div className={styles["header-btns"]}>
         <Search

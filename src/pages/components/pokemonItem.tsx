@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { myLoader } from "..";
+import { myLoader } from "../pokemons";
 import Image from "next/image";
 import styles from "@/styles/Home.module.css";
 
@@ -15,7 +15,7 @@ export default function PokemonItem({
       key={id}
       id={id}
       className={styles["main-item"]}
-      href={`pokemon/${id}`}
+      href={`pokemons/pokemon/${id}`}
     >
       <Image
         unoptimized

@@ -1,11 +1,11 @@
 import React from "react";
 import styles from "@/styles/pokemon.module.css";
 import Link from "next/link";
-import Footer from "../footer";
+import Footer from "../../components/footer";
 import Image from "next/image";
 import { myLoader } from "..";
 import { Collapse } from "antd";
-import { PokemonType } from "../types";
+import { PokemonType } from "../../types";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 
 const { Panel } = Collapse;
