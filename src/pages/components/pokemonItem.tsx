@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { myLoader } from "..";
+import { imageLoader } from "..";
 import Image from "next/image";
 import styles from "@/styles/Home.module.css";
 
@@ -19,8 +19,8 @@ export default function PokemonItem({
     >
       <Image
         unoptimized
-        loader={() => myLoader(id)}
-        src={myLoader(id)}
+        loader={() => imageLoader(id)}
+        src={imageLoader(id)}
         alt={name}
         width={150}
         height={150}

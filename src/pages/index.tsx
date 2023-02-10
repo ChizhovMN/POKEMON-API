@@ -1,7 +1,7 @@
 import Head from "next/head";
 import styles from "@/styles/Home.module.css";
-import { useEffect, useState } from "react";
-import { PokemonsAPI } from "./types";
+import { useDeferredValue, useEffect, useState } from "react";
+import { PokemonPage } from "./types";
 import Header from "./header";
 import Footer from "./footer";
 import PageBtn from "./pageBtn";
@@ -9,20 +9,20 @@ import useSWR from "swr";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import CreatePokemonTable from "./components/pokemonTable";
 
-export const myLoader = (id: string | string[] | undefined) => {
+export const imageLoader = (id: string | string[] | undefined) => {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
 };
 
 export const getServerSideProps: GetServerSideProps<{
-  serverData: PokemonsAPI;
+  pokemonPage: PokemonPage;
 }> = async () => {
   const res = await fetch(
     "https://pokeapi.co/api/v2/pokemon/?limit=16&offset=0"
   );
-  const serverData: PokemonsAPI = await res.json();
+  const pokemonPage: PokemonPage = await res.json();
   return {
     props: {
-      serverData,
+      pokemonPage,
     },
   };
 };
@@ -30,16 +30,19 @@ export const getServerSideProps: GetServerSideProps<{
 export const fetcher = (link: string) => fetch(link).then((res) => res.json());
 
 export default function Home({
-  serverData,
+  pokemonPage,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const [pokemonsData, setPokemonsData] = useState(serverData);
+  const [pokemonsData, setPokemonsData] = useState(pokemonPage);
   const [view, setView] = useState<"pages" | "all">("pages");
   const [search, setSearch] = useState("");
-  const [offset, setOffset] = useState(0);
-  const [lastPage, setLastPage] = useState(offset);
-  const [limit, setLimit] = useState(16);
+  const [pagination, setPagination] = useState({
+    offset: 0,
+    limit: 16,
+    lastPage: 0,
+  });
+  const defferedSearch = useDeferredValue(search);
   const { data } = useSWR(
-    `https://pokeapi.co/api/v2/pokemon/?limit=${limit}&offset=${offset}`,
+    `https://pokeapi.co/api/v2/pokemon/?limit=${pagination.limit}&offset=${pagination.offset}`,
     fetcher
   );
   useEffect(() => {
@@ -47,37 +50,48 @@ export default function Home({
       setPokemonsData(data);
     }
   }, [data]);
-  const searchField = pokemonsData.results.filter((item) =>
-    item.name.startsWith(search.trim())
+  const searchResults = pokemonsData.results.filter((item) =>
+    item.name.startsWith(defferedSearch.trim())
   );
+
   const pokemonsPage = Math.floor(
-    search ? searchField.length / 16 : serverData.count / 16
+    search
+      ? searchResults.length / pagination.limit
+      : pokemonPage.count / pagination.limit
   );
   const handleClickViewAll = () => {
-    setLimit(10000);
-    setOffset(0);
     setView("all");
+    setPagination((prevState) => ({ ...prevState, limit: 1000, offset: 0 }));
   };
   const handleCLickViewPage = () => {
-    setLimit(16);
-    setOffset(lastPage);
     setView("pages");
+    setPagination((prevState) => ({
+      ...prevState,
+      limit: 16,
+      offset: pagination.lastPage,
+    }));
   };
-  const handleSearchField = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(event.target.value);
+  const handleSearchField = (event: Event) => {
+    if (event.target instanceof HTMLInputElement) setSearch(event.target.value);
   };
   const handleClickNext = () => {
     if (search) return;
-    if (data.count && offset < data.count - 16) {
-      setOffset(offset + 16);
-      setLastPage(offset + 16);
+    if (data.count && pagination.offset < data.count - 16) {
+      setPagination((prevState) => ({
+        ...prevState,
+        offset: pagination.offset + 16,
+        lastPage: pagination.offset + 16,
+      }));
     }
   };
   const handleClickPrevious = () => {
     if (search) return;
-    if (offset > 0) {
-      setOffset(offset - 16);
-      setLastPage(offset - 16);
+    if (pagination.offset > 0) {
+      setPagination((prevState) => ({
+        ...prevState,
+        offset: pagination.offset - 16,
+        lastPage: pagination.offset - 16,
+      }));
     }
   };
   const PaginationField = (
@@ -90,14 +104,17 @@ export default function Home({
           name="page"
           id="page"
           min={1}
-          value={offset / 16 + 1}
+          value={pagination.offset / 16 + 1}
           onChange={(event) => {
             if (search) return;
             if (
               1 <= +event.target.value &&
               +event.target.value <= pokemonsPage + 1
             ) {
-              setOffset(Number(event.target.value) * 16 - 16);
+              setPagination((prevState) => ({
+                ...prevState,
+                offset: Number(event.target.value) * 16 - 16,
+              }));
             }
           }}
         />
@@ -119,7 +136,7 @@ export default function Home({
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header
-        pokemonsCounter={search ? searchField.length : serverData.count}
+        pokemonsCounter={search ? searchResults.length : pokemonPage.count}
         btnNameAllView={"ALL"}
         btnNamePageView={"PAGE"}
         handleClickAllView={handleClickViewAll}
@@ -128,7 +145,7 @@ export default function Home({
       />
       <main className={styles.main}>
         <div className={styles["main-table"]}>
-          {CreatePokemonTable(search ? searchField : pokemonsData.results)}
+          {CreatePokemonTable(search ? searchResults : pokemonsData.results)}
         </div>
         {viewPort[view]}
       </main>
