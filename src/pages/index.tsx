@@ -32,6 +32,7 @@ export const fetcher = (link: string) => fetch(link).then((res) => res.json());
 export default function Home({
   pokemonPage,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const chunkLength = 16;
   const [pokemonsData, setPokemonsData] = useState(pokemonPage);
   const [view, setView] = useState<"pages" | "all">("pages");
   const [search, setSearch] = useState("");
@@ -76,11 +77,11 @@ export default function Home({
   };
   const handleClickNext = () => {
     if (search) return;
-    if (data.count && pagination.offset < data.count - 16) {
+    if (data.count && pagination.offset < data.count - chunkLength) {
       setPagination((prevState) => ({
         ...prevState,
-        offset: pagination.offset + 16,
-        lastPage: pagination.offset + 16,
+        offset: pagination.offset + chunkLength,
+        lastPage: pagination.offset + chunkLength,
       }));
     }
   };
@@ -89,8 +90,8 @@ export default function Home({
     if (pagination.offset > 0) {
       setPagination((prevState) => ({
         ...prevState,
-        offset: pagination.offset - 16,
-        lastPage: pagination.offset - 16,
+        offset: pagination.offset - chunkLength,
+        lastPage: pagination.offset - chunkLength,
       }));
     }
   };
@@ -104,7 +105,7 @@ export default function Home({
           name="page"
           id="page"
           min={1}
-          value={pagination.offset / 16 + 1}
+          value={pagination.offset / chunkLength + 1}
           onChange={(event) => {
             if (search) return;
             if (
@@ -113,7 +114,7 @@ export default function Home({
             ) {
               setPagination((prevState) => ({
                 ...prevState,
-                offset: Number(event.target.value) * 16 - 16,
+                offset: Number(event.target.value) * chunkLength - chunkLength,
               }));
             }
           }}
