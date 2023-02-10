@@ -6,14 +6,14 @@ import Header from "./header";
 import Footer from "./footer";
 import PageBtn from "./pageBtn";
 import useSWR from "swr";
-import { GetStaticProps, InferGetStaticPropsType } from "next";
+import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import CreatePokemonTable from "./components/pokemonTable";
 
 export const myLoader = (id: string | string[] | undefined) => {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
 };
 
-export const getStaticProps: GetStaticProps<{
+export const getServerSideProps: GetServerSideProps<{
   serverData: PokemonsAPI;
 }> = async () => {
   const res = await fetch(
@@ -31,7 +31,7 @@ export const fetcher = (link: string) => fetch(link).then((res) => res.json());
 
 export default function Home({
   serverData,
-}: InferGetStaticPropsType<typeof getStaticProps>) {
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [pokemonsData, setPokemonsData] = useState(serverData);
   const [view, setView] = useState<"pages" | "all">("pages");
   const [search, setSearch] = useState("");
