@@ -118,10 +118,11 @@ interface MovesType {
 }
 
 export type HeaderProps = {
+  searchField: string;
   pokemonsCounter: number;
   btnNameAllView: string;
   btnNamePageView: string;
   handleClickAllView: () => void;
   handleClickPageView: () => void;
-  handleSearch: () => void;
+  handleSearch: (event: Event) => void;
 };

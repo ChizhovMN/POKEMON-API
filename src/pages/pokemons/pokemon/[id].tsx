@@ -1,26 +1,34 @@
 import React from "react";
 import styles from "@/styles/pokemon.module.css";
 import Link from "next/link";
-import Footer from "../footer";
+import Footer from "../../footer";
 import Image from "next/image";
 import { imageLoader } from "..";
-import { Collapse } from "antd";
-import { PokemonType } from "../types";
+import { Button, Collapse } from "antd";
+import { PokemonType } from "../../types";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import PokemonLogo from "@/pages/components/headerLogo";
 
 const { Panel } = Collapse;
 
 export const getServerSideProps: GetServerSideProps<{
   pokemon: PokemonType;
 }> = async (context) => {
-  const { id } = context.query;
-  const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-  const pokemon: PokemonType = await res.json();
-  return {
-    props: {
-      pokemon,
-    },
-  };
+  try {
+    const { id } = context.query;
+    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+    const pokemon: PokemonType = await res.json();
+
+    return {
+      props: {
+        pokemon,
+      },
+    };
+  } catch {
+    return {
+      notFound: true,
+    };
+  }
 };
 
 export default function PokemonPage({
@@ -29,13 +37,14 @@ export default function PokemonPage({
   return (
     <>
       <header className={styles.header}>
-        <Link
-          href={{
-            pathname: "/",
-          }}
-        >
-          <h1>POKEMONS API</h1>
-        </Link>
+        <div>
+          <PokemonLogo href="/" />
+          <Link href="/pokemons">
+            <Button type="dashed" style={{ display: "block" }}>
+              GO BACK
+            </Button>
+          </Link>
+        </div>
         <div>POKEMON: {pokemon?.name.toUpperCase()}</div>
       </header>
       <main className={styles.main}>
