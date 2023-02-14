@@ -9,6 +9,7 @@ import useSWR from "swr";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import CreatePokemonTable from "../components/pokemonTable";
 import { useRouter } from "next/router";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 export const imageLoader = (id: string | string[] | undefined) => {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
@@ -45,7 +46,6 @@ export default function Home({
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const router = useRouter();
   const { push, query } = useRouter();
-  const [pokemonsData, setPokemonsData] = useState(pokemonPage);
   const [pageView, setPageView] = useState<string>("pages");
   const [search, setSearch] = useState("");
   const [pagination, setPagination] = useState({
@@ -53,11 +53,34 @@ export default function Home({
     limit: 16,
     lastPage: 0,
   });
+  const [loading, setLoading] = useState(false);
   const defferedSearch = useDeferredValue(search);
   const { data } = useSWR(
     `https://pokeapi.co/api/v2/pokemon/?limit=${pagination.limit}&offset=${pagination.offset}`,
     fetcher
   );
+  const [pokemonsData, setPokemonsData] = useState<PokemonPage>(
+    data || pokemonPage
+  );
+  const loadMoreData = () => {
+    if (loading) {
+      return;
+    }
+    console.log("LOAD");
+    setLoading(true);
+    if (data) {
+      setPokemonsData((prevState) => ({
+        ...prevState,
+        results: [...prevState.results, ...data.results],
+      }));
+      setPagination((prevState) => ({
+        ...prevState,
+        limit: 16,
+        offset: pagination.offset + 16,
+      }));
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     const params = new URLSearchParams(document.location.search);
     const view = params.get("view");
@@ -66,6 +89,9 @@ export default function Home({
     const search = params.get("search");
     if (view) {
       setPageView(view);
+    }
+    if (view === "all") {
+      loadMoreData();
     }
     if (offset) {
       setPagination((prevState) => ({ ...prevState, offset: +offset }));
@@ -78,9 +104,9 @@ export default function Home({
     }
   }, []);
   useEffect(() => {
-    if (data) {
-      setPokemonsData(data);
-    }
+    // if (data) {
+    //   setPokemonsData(data);
+    // }
     if (!search.length) {
       delete router.query.search;
       router.replace(
@@ -95,8 +121,22 @@ export default function Home({
         undefined,
         { shallow: true }
       );
+    } else {
+      push(
+        {
+          query: {
+            ...query,
+            view: pageView,
+            offset: pagination.offset,
+            limit: pagination.limit,
+            search: search,
+          },
+        },
+        undefined,
+        { shallow: true }
+      );
     }
-  }, [data, search]);
+  }, [data, search, pageView, pagination]);
   const searchResults = pokemonsData.results.filter((item) =>
     item.name.startsWith(defferedSearch.trim())
   );
@@ -107,7 +147,16 @@ export default function Home({
   );
   const handleClickViewAll = () => {
     setPageView("all");
-    setPagination((prevState) => ({ ...prevState, limit: 10000, offset: 0 }));
+    setPagination((prevState) => ({
+      ...prevState,
+      limit: 16,
+      offset: 16,
+    }));
+    setPokemonsData((prevState) => ({
+      ...prevState,
+      results: pokemonPage.results,
+    }));
+    loadMoreData();
   };
   const handleCLickViewPage = () => {
     setPageView("pages");
@@ -127,7 +176,10 @@ export default function Home({
   };
   const handleClickNext = () => {
     if (search) return;
-    if (data?.count && pagination.offset < data?.count - pagination.limit) {
+    if (
+      pokemonsData?.count &&
+      pagination.offset < pokemonsData?.count - pagination.limit
+    ) {
       setPagination((prevState) => ({
         ...prevState,
         offset: pagination.offset + pagination.limit,
@@ -194,9 +246,36 @@ export default function Home({
         handleSearch={(event: Event) => handleSearchField(event)}
       />
       <main className={styles.main}>
-        <div className={styles["main-table"]}>
-          {CreatePokemonTable(search ? searchResults : pokemonsData.results)}
-        </div>
+        {pageView === "pages" ? (
+          <div className={styles["main-table"]}>
+            {CreatePokemonTable(search ? searchResults : pokemonsData.results)}
+          </div>
+        ) : (
+          <div
+            id="scrollableDiv"
+            style={{
+              maxHeight: "80vh",
+              overflow: "auto",
+              padding: "0 16px",
+              border: "1px solid rgba(140, 140, 140, 0.35)",
+            }}
+          >
+            <InfiniteScroll
+              dataLength={pokemonsData.results.length}
+              next={loadMoreData}
+              hasMore={
+                pokemonsData.results.length < pokemonsData.count && !loading
+              }
+              loader={<h2>Loading...</h2>}
+              scrollableTarget="scrollableDiv"
+              className={styles["main-table"]}
+            >
+              {CreatePokemonTable(
+                search ? searchResults : pokemonsData.results
+              )}
+            </InfiniteScroll>
+          </div>
+        )}
         {pageView === "pages" && PaginationField}
       </main>
       <Footer />

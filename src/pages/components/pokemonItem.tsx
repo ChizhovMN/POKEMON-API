@@ -13,12 +13,7 @@ export default function PokemonItem({
 }) {
   const [imgId, setImgId] = useState(id);
   return (
-    <Link
-      key={id}
-      id={id}
-      className={styles["main-item"]}
-      href={`pokemons/pokemon/${id}`}
-    >
+    <Link className={styles["main-item"]} href={`pokemons/pokemon/${id}`}>
       <Image
         unoptimized
         src={imageLoader(imgId)}
