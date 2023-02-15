@@ -25,7 +25,6 @@
   justify-items: center;
   padding: 1rem;
   font-size: 0.8em;
-  flex-grow: 1;
 }
 .main-item {
   display: flex;

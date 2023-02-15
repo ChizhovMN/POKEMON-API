@@ -25,7 +25,7 @@ export default function Header({
       <div className={styles["header-btns"]}>
         <Search
           placeholder="input search text"
-          value={searchField}
+          defaultValue={searchField}
           style={{ width: 200 }}
           onChange={handleSearch}
         />
