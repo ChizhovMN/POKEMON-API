@@ -1,6 +1,6 @@
 import Head from "next/head";
 import styles from "@/styles/Home.module.css";
-import { useDeferredValue, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { PokemonPage } from "../types";
 import Header from "../header";
 import Footer from "../footer";
@@ -8,7 +8,7 @@ import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/router";
 import PaginationPage from "../components/paginationPage";
 import InfiniteScrollPage from "../components/infinitScrollPage";
-import { useDebounce, useDebouncedCallback } from "use-debounce";
+import { useDebouncedCallback } from "use-debounce";
 
 export const imageLoader = (id: string | string[] | undefined) => {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
@@ -20,12 +20,34 @@ export const getServerSideProps: GetServerSideProps<{
     const params = new URLSearchParams();
     const limit = params.get("limit");
     const offset = params.get("offset");
+    // const search = params.get("search");
     const res = await fetch(
       `https://pokeapi.co/api/v2/pokemon/?limit=${limit || 16}&offset=${
         offset || 0
       }`
     );
     const pokemonPage: PokemonPage = await res.json();
+    // const res = await fetch("https://beta.pokeapi.co/graphql/v1beta", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({
+    //     query: `query getSeacrhResults($limit: Int,$offset: Int){
+    //       pokemon_v2_pokemon(
+    //         where:{ name: { _like: "%${search}%" } }
+    //         limit:$limit
+    //         offset:$offset
+    //       ){
+    //         name
+    //         id
+    //       }
+    //     }`,
+    //     variables: {
+    //       limit: limit,
+    //       offset: offset,
+    //     },
+    //   }),
+    // });
+    // const pokemonPage = await res.json();
     return {
       props: {
         pokemonPage,
@@ -46,17 +68,38 @@ export default function Home({
   const { push, query } = useRouter();
   const [pageView, setPageView] = useState<string>("pages");
   const [search, setSearch] = useState((query.search as string) || "");
-  // const [defferedSearch] = useDebounce(search, 350);
-  const defferedSearch = useDebouncedCallback(
-    (search: string) => setSearch(search),
-    350
-  );
-  // const defferedSearch = useDeferredValue(search);
   const [pagination, setPagination] = useState({
     limit: Number(query.limit) || 16,
     offset: Number(query.offset) || 0,
   });
+  console.log("POKEMON PAGE", pokemonPage);
 
+  const defferedSearch = useDebouncedCallback((search: string) => {
+    setSearch(search);
+    fetch("https://beta.pokeapi.co/graphql/v1beta", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: `query getSeacrhResults($limit: Int,$offset: Int){
+          pokemon_v2_pokemon(
+            where:{ name: { _like: "%${search}%" } }
+            limit:$limit
+            offset:$offset
+          ){
+            name
+            id
+          }
+        }`,
+        variables: {
+          limit: pagination.limit,
+          offset: pagination.offset,
+        },
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => console.log("data", data));
+    console.log("PAGINATION", pagination.offset, pagination.limit);
+  }, 350);
   useEffect(() => {
     const params = new URLSearchParams(document.location.search);
     const view = params.get("view");
@@ -72,7 +115,7 @@ export default function Home({
     push({ query: { ...query, view: pageView } }, undefined, {
       shallow: true,
     });
-  }, [pageView]);
+  }, [pageView, search]);
 
   const handleClickViewAll = () => {
     setPageView("all");
@@ -112,6 +155,7 @@ export default function Home({
         handleClickPageView={handleCLickViewPage}
         handleSearch={(event: Event) => handleSearchField(event)}
       />
+      <div id="fetcher"></div>
       <main className={styles.main}>
         {pageView === "pages" ? (
           <PaginationPage
@@ -127,3 +171,27 @@ export default function Home({
     </>
   );
 }
+
+// fetch("https://beta.pokeapi.co/graphql/v1beta", {
+//   method: "POST",
+//   headers: { "Content-Type": "application/json" },
+//   body: JSON.stringify({
+//     query: `query getSeacrhResults($limit: Int = 16,$offset: Int = 0,$search: String = ""){
+//       pokemon_v2_pokemonspecies(
+//         where:{ name: { _like: "$search" } }
+//         limit:$limit
+//         offset:$offset
+//       ){
+//         name
+//         id
+//       }
+//     }`,
+//     variables: {
+//       limit: 16,
+//       offset: 0,
+//       search: "%chi%",
+//     },
+//   }),
+// })
+//   .then((res) => res.json())
+//   .then((data) => console.log("DATA", data));
