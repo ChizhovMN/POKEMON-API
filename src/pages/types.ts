@@ -27,24 +27,34 @@ export interface PokemonType {
     }[];
   };
 }
+export interface PokemonEvolution {
+  data: {
+    pokemon_v2_evolutionchain: {
+      id: number;
+      pokemon_v2_pokemonspecies: {
+        name: string;
+        id: number;
+        pokemon_v2_pokemons: {
+          pokemon_v2_pokemonstats: {
+            base_stat: number;
+            id: number;
+            pokemon_v2_stat: {
+              name: string;
+            };
+          }[];
+        }[];
+      }[];
+    }[];
+  };
+}
 interface NameID {
   name: string;
   id: number;
 }
-export interface QueryType {
-  getFirstPokemons: string;
-}
-// export interface PokemonPage {
-//   count: number;
-//   next: string;
-//   previous: string;
-//   results: PokemonLink[];
-// }
 export interface PokemonLink {
   name: string;
   id: number;
 }
-
 export interface Pokemon {
   name: string;
   url: string;

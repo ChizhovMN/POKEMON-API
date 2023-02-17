@@ -7,20 +7,25 @@ import { useState } from "react";
 export default function PokemonItem({
   id,
   name,
+  width = 150,
+  height = 150,
 }: {
   id: string;
   name: string;
+  width?: number;
+  height?: number;
 }) {
   const [imgId, setImgId] = useState(id);
   return (
-    <Link className={styles["main-item"]} href={`pokemons/pokemon/${id}`}>
+    <Link className={styles["main-item"]} href={`/pokemons/pokemon/${id}`}>
       <Image
         unoptimized
         src={imageLoader(imgId)}
         onError={() => setImgId("0")}
         alt={name}
-        width={150}
-        height={150}
+        width={width}
+        height={height}
+        style={{ imageRendering: "pixelated" }}
       />
       {name}
     </Link>
