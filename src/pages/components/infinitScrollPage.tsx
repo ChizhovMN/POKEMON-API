@@ -5,6 +5,7 @@ import CreatePokemonTable from "./pokemonTable";
 import { PokemonPage } from "../types";
 import SearchCounter from "./searchCounter";
 import { Waypoint } from "react-waypoint";
+import { fetcherGraphQL } from "../pokemons";
 
 export default function InfiniteScrollPage({
   pokemonPage,
@@ -15,37 +16,70 @@ export default function InfiniteScrollPage({
 }) {
   const [loading, setLoading] = useState(false);
   const [end, setEnd] = useState(false);
+  const [pagination, setPagination] = useState({
+    offset: 0,
+    limit: 16,
+  });
   const [pokemons, setPokemons] = useState<PokemonPage>(pokemonPage);
+  console.log("pokemons", { ...pokemons });
+
   const loadMoreData = () => {
     if (loading) {
       return;
     }
     setLoading(true);
-    fetch(pokemons.next)
-      .then((res) => res.json())
+    fetcherGraphQL(pagination.offset, pagination.limit, search)
       .then((data: PokemonPage) => {
-        if (data.next === null) {
+        if (
+          pokemons.data.pokemon_v2_pokemon_aggregate.aggregate.count >
+          pagination.offset
+        ) {
+          setPagination((prevState) => ({
+            ...prevState,
+            offset: pagination.offset + pagination.limit,
+          }));
+          setPokemons((prevState) => ({
+            ...prevState,
+            pokemon_v2_pokemon: [
+              ...pokemons.data.pokemon_v2_pokemon,
+              ...data.data.pokemon_v2_pokemon,
+            ],
+            pokemon_v2_pokemon_aggregate: {
+              aggregate: {
+                count: data.data.pokemon_v2_pokemon_aggregate.aggregate.count,
+              },
+            },
+          }));
+
+          setLoading(false);
+        } else {
           setEnd(true);
         }
-        setPokemons((prevState) => ({
-          ...prevState,
-          next: data.next,
-          results: [...prevState.results, ...data.results],
-        }));
-        setLoading(false);
       })
-      .catch(() => setLoading(false))
       .finally(() => setLoading(false));
+    // fetch(pokemons.next)
+    //   .then((res) => res.json())
+    //   .then((data: PokemonPage) => {
+    //     if (data.next === null) {
+    //       setEnd(true);
+    //     }
+    //     setPokemons((prevState) => ({
+    //       ...prevState,
+    //       next: data.next,
+    //       results: [...prevState.results, ...data.results],
+    //     }));
+    //     setLoading(false);
+    //   })
+    //   .catch(() => setLoading(false))
+    //   .finally(() => setLoading(false));
   };
   useEffect(() => {}, []);
-  const pokemonsResult = !search.length
-    ? pokemons.results
-    : pokemons.results.filter((item) =>
-        item.name.toLowerCase().trim().startsWith(search)
-      );
   return (
     <>
-      <SearchCounter search={search} results={pokemonsResult.length} />
+      <SearchCounter
+        search={search}
+        results={pokemonPage.data.pokemon_v2_pokemon_aggregate.aggregate.count}
+      />
       <div
         id="scrollableDiv"
         style={{
@@ -56,16 +90,19 @@ export default function InfiniteScrollPage({
         }}
       >
         <InfiniteScroll
-          dataLength={pokemons.results.length}
+          dataLength={pokemons.data.pokemon_v2_pokemon.length}
           next={loadMoreData}
           scrollThreshold="90%"
-          hasMore={pokemons.results.length < pokemons.count}
+          hasMore={
+            pokemons.data.pokemon_v2_pokemon.length <
+            pokemonPage.data.pokemon_v2_pokemon_aggregate.aggregate.count
+          }
           loader={<h2>Loading...</h2>}
           scrollableTarget="scrollableDiv"
           className={styles["main-table"]}
           pullDownToRefreshContent={<h3>Release to refresh</h3>}
         >
-          {CreatePokemonTable(pokemonsResult)}
+          {CreatePokemonTable(pokemons.data.pokemon_v2_pokemon)}
           {!loading && !end && (
             <Waypoint
               scrollableAncestor={document.getElementById("scrollableDiv")}

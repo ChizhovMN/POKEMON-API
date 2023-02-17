@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { fetcher } from "../pokemons";
 import useSWR from "swr";
 import styles from "@/styles/Home.module.css";
 import PageBtn from "../pageBtn";
@@ -7,6 +6,8 @@ import CreatePokemonTable from "./pokemonTable";
 import { PokemonPage } from "../types";
 import { useRouter } from "next/router";
 import SearchCounter from "./searchCounter";
+import { fetcherGraphQL } from "../pokemons";
+import { useDebouncedCallback } from "use-debounce";
 
 export default function PaginationPage({
   pokemonPage,
@@ -22,19 +23,27 @@ export default function PaginationPage({
     offset: page.offset || 0,
     limit: page.limit || 16,
   });
-  const pokemonURL = (limit: number, offset: number) =>
-    `https://pokeapi.co/api/v2/pokemon/?limit=${limit || 16}&offset=${offset}`;
-  const [link, setLink] = useState(
-    pokemonURL(pagination.limit, pagination.offset)
+  const defferedPagination = useDebouncedCallback(
+    (pagination: { offset: number; limit: number }) => {
+      setPagination(pagination);
+    },
+    500
   );
-  const { data } = useSWR(link, fetcher);
-  const [pokemons, setPokemons] = useState(pokemonPage || data);
-  const pages = Math.floor(pokemonPage.count / pagination.limit);
-  const pokemonsResult = !search.length
-    ? pokemons.results
-    : pokemons.results.filter((item) =>
-        item.name.toLowerCase().trim().startsWith(search)
-      );
+  const { data: data } = useSWR(
+    [pagination.limit, pagination.offset, search],
+    () =>
+      fetcherGraphQL(
+        pagination.offset,
+        pagination.limit,
+        !search.length ? "" : search
+      )
+  );
+
+  const [pokemons, setPokemons] = useState<PokemonPage>(data || pokemonPage);
+  const pages = Math.floor(
+    pokemons?.data?.pokemon_v2_pokemon_aggregate.aggregate.count /
+      pagination.limit
+  );
   useEffect(() => {
     if (data) {
       setPokemons(data);
@@ -51,68 +60,71 @@ export default function PaginationPage({
       undefined,
       { shallow: true }
     );
-  }, [data, pagination, link]);
-  const handleClickNext = () => {
-    if (pokemons.next !== null) {
+    if (
+      pokemons.data.pokemon_v2_pokemon_aggregate.aggregate.count <
+      pagination.offset
+    ) {
       setPagination((prevState) => ({
         ...prevState,
-        offset: pagination.offset + pagination.limit,
+        offset:
+          Math.floor(
+            pokemons?.data?.pokemon_v2_pokemon_aggregate.aggregate.count /
+              pagination.limit
+          ) * pagination.limit,
       }));
     }
-    setLink(pokemons.next);
+  }, [data, pokemons.data.pokemon_v2_pokemon_aggregate.aggregate.count]);
+  const handleClickNext = () => {
+    if (
+      pokemons.data.pokemon_v2_pokemon_aggregate.aggregate.count <
+      pagination.offset + pagination.limit
+    )
+      return;
+    setPagination((prevState) => ({
+      ...prevState,
+      offset: pagination.offset + pagination.limit,
+    }));
   };
   const handleClickPrevious = () => {
-    if (pokemons.previous !== null) {
-      setPagination((prevState) => ({
-        ...prevState,
-        offset: pagination.offset - pagination.limit,
-      }));
-    }
-    setLink(pokemons.previous);
+    if (pagination.offset < pagination.limit) return;
+    setPagination((prevState) => ({
+      ...prevState,
+      offset: pagination.offset - pagination.limit,
+    }));
   };
   return (
     <>
-      <SearchCounter search={search} results={pokemonsResult.length} />
+      <SearchCounter
+        search={search}
+        results={pokemons.data.pokemon_v2_pokemon_aggregate.aggregate.count}
+      />
       <div className={styles["main-table"]}>
-        {CreatePokemonTable(pokemonsResult)}
+        {CreatePokemonTable(pokemons.data.pokemon_v2_pokemon)}
       </div>
-      {!search.length && (
-        <div className={styles["main-btns"]}>
-          <PageBtn btnName={"<"} handleClick={() => handleClickPrevious()} />
-          <div className={styles.pagination}>
-            <input
-              className={styles["pagination-input"]}
-              type="number"
-              name="page"
-              id="page"
-              value={pagination.offset / pagination.limit + 1}
-              onChange={(event) => {
-                if (search) return;
-                if (
-                  1 <= +event.target.value &&
-                  +event.target.value <= pages + 1
-                ) {
-                  setPagination((prevState) => ({
-                    ...prevState,
-                    offset:
-                      Number(event.target.value) * pagination.limit -
-                      pagination.limit,
-                  }));
-                  setLink(
-                    pokemonURL(
-                      pagination.limit,
-                      Number(event.target.value) * pagination.limit -
-                        pagination.limit
-                    )
-                  );
-                }
-              }}
-            />
-            <div>/ {pages + 1}</div>
-          </div>
-          <PageBtn btnName={">"} handleClick={() => handleClickNext()} />
+      <div className={styles["main-btns"]}>
+        <PageBtn btnName={"<"} handleClick={() => handleClickPrevious()} />
+        <div className={styles.pagination}>
+          <input
+            className={styles["pagination-input"]}
+            type="number"
+            name="page"
+            id="page"
+            value={pagination.offset / pagination.limit + 1}
+            onChange={(event) => {
+              if (1 > +event.target.value || +event.target.value > pages + 1)
+                return;
+              defferedPagination({
+                offset:
+                  Number(Math.floor(+event.target.value)) * pagination.limit -
+                  pagination.limit,
+                limit: pagination.limit,
+              });
+            }}
+          />
+          <div>/ {pages + 1}</div>
         </div>
-      )}
+        <PageBtn btnName={">"} handleClick={() => handleClickNext()} />
+      </div>
     </>
   );
 }

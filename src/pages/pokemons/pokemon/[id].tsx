@@ -16,9 +16,44 @@ export const getServerSideProps: GetServerSideProps<{
 }> = async (context) => {
   try {
     const { id } = context.query;
-    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+    console.log(id);
+    const res = await fetch("https://beta.pokeapi.co/graphql/v1beta", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: `query getPokemon($id: Int_comparison_exp = {}) {
+          pokemon_v2_pokemon(where: {id: {_eq: ${id}}}) {
+            id
+            name
+            pokemon_v2_pokemonspecy {
+              evolution_chain_id
+            }
+            pokemon_v2_pokemonabilities {
+              pokemon_v2_ability {
+                name
+                id
+              }
+            }
+            pokemon_v2_pokemonmoves {
+              pokemon_v2_move {
+                name
+                id
+              }
+            }
+            pokemon_v2_pokemonstats {
+              base_stat
+              pokemon_v2_stat {
+                name
+                id
+              }
+              id
+            }
+            weight
+          }
+        }`,
+      }),
+    });
     const pokemon: PokemonType = await res.json();
-
     return {
       props: {
         pokemon,
@@ -45,49 +80,59 @@ export default function PokemonPage({
             </Button>
           </Link>
         </div>
-        <div>POKEMON: {pokemon?.name.toUpperCase()}</div>
+        <div>
+          POKEMON: {pokemon?.data?.pokemon_v2_pokemon[0]?.name.toUpperCase()}
+        </div>
       </header>
       <main className={styles.main}>
         <div className={styles.pokemon}>
           <Image
             className={styles["pokemon-img"]}
             unoptimized
-            loader={() => imageLoader(`${pokemon?.id}`)}
-            src={imageLoader(`${pokemon?.id}`)}
-            alt={pokemon?.name || "Unnamed"}
+            loader={() =>
+              imageLoader(`${pokemon?.data?.pokemon_v2_pokemon[0]?.id}`)
+            }
+            src={imageLoader(`${pokemon?.data?.pokemon_v2_pokemon[0]?.id}`)}
+            alt={pokemon?.data?.pokemon_v2_pokemon[0]?.name || "Unnamed"}
             width={600}
             height={600}
           />
         </div>
         <div className={styles["pokemon-info"]}>
-          <h2>{pokemon?.name.toUpperCase()}</h2>
-          <p>Weight: {pokemon?.weight} kg</p>
+          <h2>{pokemon?.data?.pokemon_v2_pokemon[0]?.name.toUpperCase()}</h2>
+          <p>Weight: {pokemon?.data?.pokemon_v2_pokemon[0]?.weight} kg</p>
           <Collapse className={styles.collapse}>
             <Panel header="STATS" key="1" className={styles["collapse-item"]}>
               <ol className={styles["collapse-list"]}>
-                {pokemon?.stats.map((item, index) => (
-                  <li className={styles["list-item"]} key={index}>
-                    {item?.stat?.name} - {item?.base_stat}
-                  </li>
-                ))}
+                {pokemon?.data?.pokemon_v2_pokemon[0]?.pokemon_v2_pokemonstats.map(
+                  (item, index) => (
+                    <li className={styles["list-item"]} key={index}>
+                      {item?.pokemon_v2_stat?.name} - {item?.base_stat}
+                    </li>
+                  )
+                )}
               </ol>
             </Panel>
             <Panel header="MOVES" key="2" className={styles["collapse-item"]}>
               <ol className={styles["collapse-list"]}>
-                {pokemon?.moves.map((item, index) => (
-                  <li className={styles["list-item"]} key={index}>
-                    {item?.move?.name}
-                  </li>
-                ))}
+                {pokemon?.data?.pokemon_v2_pokemon[0]?.pokemon_v2_pokemonmoves.map(
+                  (item, index) => (
+                    <li className={styles["list-item"]} key={index}>
+                      {item?.pokemon_v2_move?.name}
+                    </li>
+                  )
+                )}
               </ol>
             </Panel>
-            <Panel header="TYPES" key="3" className={styles["collapse-item"]}>
+            <Panel header="ABILITY" key="3" className={styles["collapse-item"]}>
               <ol className={styles["collapse-list"]}>
-                {pokemon?.types.map((item, index) => (
-                  <li className={styles["list-item"]} key={index}>
-                    {item?.type?.name}
-                  </li>
-                ))}
+                {pokemon?.data?.pokemon_v2_pokemon[0]?.pokemon_v2_pokemonabilities.map(
+                  (item, index) => (
+                    <li className={styles["list-item"]} key={index}>
+                      {item?.pokemon_v2_ability?.name}
+                    </li>
+                  )
+                )}
               </ol>
             </Panel>
           </Collapse>

@@ -4,8 +4,6 @@ import PokemonItem from "./pokemonItem";
 
 export default function CreatePokemonTable(arr: PokemonLink[]): ReactNode {
   return arr.map((item) => {
-    const urlSplit = item.url.split("/");
-    const id = urlSplit[urlSplit.length - 2];
-    return <PokemonItem key={id} id={id} name={item.name} />;
+    return <PokemonItem key={item.id} id={"" + item.id} name={item.name} />;
   });
 }
