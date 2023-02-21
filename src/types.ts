@@ -85,5 +85,5 @@ export type HeaderProps = {
   btnNamePageView: string;
   handleClickAllView: () => void;
   handleClickPageView: () => void;
-  handleSearch: (event: Event) => void;
+  handleSearch: (event: React.ChangeEvent<HTMLInputElement>) => void;
 };

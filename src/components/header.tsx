@@ -27,7 +27,9 @@ export default function Header({
           placeholder="input search text"
           defaultValue={searchField}
           style={{ width: 200 }}
-          onChange={handleSearch}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+            handleSearch(event)
+          }
         />
         <PageBtn btnName={btnNameAllView} handleClick={handleClickAllView} />
         <PageBtn btnName={btnNamePageView} handleClick={handleClickPageView} />

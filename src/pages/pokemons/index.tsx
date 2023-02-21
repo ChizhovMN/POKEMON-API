@@ -10,7 +10,6 @@ import PaginationPage from "../../components/paginationPage";
 import InfiniteScrollPage from "../../components/infinitScrollPage";
 import { fetcherGraphQL } from "@/services";
 import styles from "@/styles/Home.module.css";
-import PokemonPage from "./pokemon/[id]";
 
 export const getServerSideProps: GetServerSideProps<{
   pokemonPage: PokemonPageType;
@@ -71,7 +70,7 @@ export default function Home({
   const handleCLickViewPage = () => {
     setPageView("pages");
   };
-  const handleSearchField = (event: Event) => {
+  const handleSearchField = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target instanceof HTMLInputElement) {
       push({ query: { ...query, search: event.target.value } }, undefined, {
         shallow: true,
@@ -95,7 +94,7 @@ export default function Home({
         btnNamePageView={"PAGE"}
         handleClickAllView={handleClickViewAll}
         handleClickPageView={handleCLickViewPage}
-        handleSearch={(event: Event) => handleSearchField(event)}
+        handleSearch={handleSearchField}
       />
       <main className={styles.main}>
         {pageView === "pages" ? (

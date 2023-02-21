@@ -47,7 +47,7 @@ export default function PokemonEvolutionPage({
         </div>
         <div>EVOLUTION CHAIN</div>
       </header>
-      <main className={`${global.main},${styles["pokemon-evolution"]}`}>
+      <main className={`${global.main} ${styles["pokemon-evolution"]}`}>
         {pokemon?.data?.pokemon_v2_evolutionchain[0]?.pokemon_v2_pokemonspecies.map(
           (item) => (
             <section key={item.id}>
