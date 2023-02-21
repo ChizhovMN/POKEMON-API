@@ -1,46 +1,22 @@
-import Head from "next/head";
-import styles from "@/styles/Home.module.css";
 import { useEffect, useState } from "react";
-import { PokemonPage } from "../types";
-import Header from "../header";
-import Footer from "../footer";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import Head from "next/head";
 import { useRouter } from "next/router";
-import PaginationPage from "../components/paginationPage";
-import InfiniteScrollPage from "../components/infinitScrollPage";
 import { useDebouncedCallback } from "use-debounce";
+import { PokemonPageType } from "../../types";
+import Header from "../../components/header";
+import Footer from "@/components/footer";
+import PaginationPage from "../../components/paginationPage";
+import InfiniteScrollPage from "../../components/infinitScrollPage";
+import { fetcherGraphQL } from "@/services";
+import styles from "@/styles/Home.module.css";
+import PokemonPage from "./pokemon/[id]";
 
-export const imageLoader = (id: string | string[] | undefined) => {
-  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
-};
-export const fetcherGraphQL = (offset = 0, limit = 16, search = "") =>
-  fetch("https://beta.pokeapi.co/graphql/v1beta", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: `query getPokemons($offset: Int = 0, $limit: Int = 16, $_like: String = "%${search}%") {
-        pokemon_v2_pokemon(offset: $offset, limit: $limit, where: {name: {_ilike:$_like }}) {
-          id
-          name
-        }
-        pokemon_v2_pokemon_aggregate(where: {name: {_ilike: $_like}}) {
-          aggregate {
-            count
-          }
-        }
-      }
-      `,
-      variables: {
-        offset: offset,
-        limit: limit,
-      },
-    }),
-  }).then((res) => res.json());
 export const getServerSideProps: GetServerSideProps<{
-  pokemonPage: PokemonPage;
+  pokemonPage: PokemonPageType;
 }> = async () => {
   try {
-    const pokemonPage: PokemonPage = await fetcherGraphQL();
+    const pokemonPage: PokemonPageType = await fetcherGraphQL();
     return {
       props: {
         pokemonPage,
@@ -63,7 +39,6 @@ export default function Home({
     limit: Number(query.limit) || 16,
     offset: Number(query.offset) || 0,
   });
-
   const defferedSearch = useDebouncedCallback((search: string) => {
     setSearch(search);
   }, 500);
@@ -102,7 +77,6 @@ export default function Home({
         shallow: true,
       });
       defferedSearch(event.target.value);
-      // setSearch(event.target.value);
     }
   };
 
@@ -116,9 +90,7 @@ export default function Home({
       </Head>
       <Header
         searchField={search}
-        pokemonsCounter={
-          pokemonPage.data.pokemon_v2_pokemon_aggregate.aggregate.count
-        }
+        pokemonsCounter={pokemonPage.count}
         btnNameAllView={"ALL"}
         btnNamePageView={"PAGE"}
         handleClickAllView={handleClickViewAll}

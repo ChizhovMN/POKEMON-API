@@ -1,9 +1,10 @@
 import React from "react";
-import Footer from "./footer";
-import styles from "@/styles/Home.module.css";
 import Link from "next/link";
-import PokemonLogo from "./components/headerLogo";
+import Footer from "@/components/footer";
+import { PokemonLogo } from "../components/headerLogo";
 import { Button, Divider } from "antd";
+import styles from "@/styles/welcome.module.css";
+import global from "@/styles/Home.module.css";
 
 export default function WelcomePage() {
   const dividerStyle = { backgroundColor: "white" };
@@ -19,12 +20,12 @@ export default function WelcomePage() {
   ];
   return (
     <>
-      <header className={styles.header}>
+      <header className={global.header}>
         <PokemonLogo href={"/"} />
       </header>
-      <main className={styles.main}>
-        <section style={{ padding: "1rem" }}>
-          <h2 style={{ textAlign: "right" }}>
+      <main className={global.main}>
+        <section className={styles["welcome-main"]}>
+          <h2 className={styles["welcome-text"]}>
             All the Pokémon data ever need in one place
           </h2>
           <Divider style={dividerStyle} />
@@ -33,15 +34,12 @@ export default function WelcomePage() {
             database, including:
           </p>
           <Divider style={dividerStyle} />
-          <ul style={{ maxWidth: "fit-content", margin: "0 0 0 auto" }}>
+          <ul className={styles["welcome-list"]}>
             {pokemonsDataBase.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
-          <Link
-            href="pokemons"
-            style={{ display: "block", textAlign: "center" }}
-          >
+          <Link href="pokemons" className={styles["pokemon-link"]}>
             {" "}
             <Button ghost>CHECK ALL OUR POKEMONS</Button>
           </Link>

@@ -1,60 +1,24 @@
 import React from "react";
-import styles from "@/styles/pokemon.module.css";
-import Link from "next/link";
-import Footer from "../../footer";
-import Image from "next/image";
-import { imageLoader } from "..";
-import { Button, Collapse } from "antd";
-import { PokemonType } from "../../types";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import PokemonLogo from "@/pages/components/headerLogo";
+import Link from "next/link";
 import { useRouter } from "next/router";
+import Image from "next/image";
+import { Button, Collapse } from "antd";
+import Footer from "@/components/footer";
+import { PokemonLogo } from "@/components/headerLogo";
+import { PokemonDescriptionType } from "../../../types";
+import { fetcherPokemonType, imageLoader } from "@/services";
+import global from "@/styles/global.module.css";
+import styles from "@/styles/pokemon.module.css";
 
 const { Panel } = Collapse;
 
 export const getServerSideProps: GetServerSideProps<{
-  pokemon: PokemonType;
+  pokemon: PokemonDescriptionType;
 }> = async (context) => {
   try {
     const { id } = context.query;
-    console.log(id);
-    const res = await fetch("https://beta.pokeapi.co/graphql/v1beta", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: `query getPokemon($id: Int_comparison_exp = {}) {
-          pokemon_v2_pokemon(where: {id: {_eq: ${id}}}) {
-            id
-            name
-            pokemon_v2_pokemonspecy {
-              evolution_chain_id
-            }
-            pokemon_v2_pokemonabilities {
-              pokemon_v2_ability {
-                name
-                id
-              }
-            }
-            pokemon_v2_pokemonmoves {
-              pokemon_v2_move {
-                name
-                id
-              }
-            }
-            pokemon_v2_pokemonstats {
-              base_stat
-              pokemon_v2_stat {
-                name
-                id
-              }
-              id
-            }
-            weight
-          }
-        }`,
-      }),
-    });
-    const pokemon: PokemonType = await res.json();
+    const pokemon = await fetcherPokemonType(id as string);
     return {
       props: {
         pokemon,
@@ -73,7 +37,7 @@ export default function PokemonPage({
   const router = useRouter();
   return (
     <>
-      <header className={styles.header}>
+      <header className={global.header}>
         <div>
           <PokemonLogo href="/" />
           <Button
@@ -84,49 +48,41 @@ export default function PokemonPage({
             GO BACK
           </Button>
         </div>
-        <div>
-          POKEMON: {pokemon?.data?.pokemon_v2_pokemon[0]?.name.toUpperCase()}
-        </div>
+        <div>POKEMON: {pokemon?.name.toUpperCase()}</div>
       </header>
-      <main className={styles.main} style={{ display: "block" }}>
-        <div style={{ display: "flex" }}>
-          <div className={styles.pokemon}>
+      <main className={global.main} style={{ display: "block" }}>
+        <div className={styles["pokemon-wrapper"]}>
+          <div>
             <Image
               className={styles["pokemon-img"]}
               unoptimized
-              loader={() =>
-                imageLoader(`${pokemon?.data?.pokemon_v2_pokemon[0]?.id}`)
-              }
-              src={imageLoader(`${pokemon?.data?.pokemon_v2_pokemon[0]?.id}`)}
-              alt={pokemon?.data?.pokemon_v2_pokemon[0]?.name || "Unnamed"}
+              loader={() => imageLoader(`${pokemon?.id}`)}
+              src={imageLoader(`${pokemon?.id}`)}
+              alt={pokemon?.name || "Unnamed"}
               width={600}
               height={600}
             />
           </div>
           <div className={styles["pokemon-info"]}>
-            <h2>{pokemon?.data?.pokemon_v2_pokemon[0]?.name.toUpperCase()}</h2>
-            <p>Weight: {pokemon?.data?.pokemon_v2_pokemon[0]?.weight} kg</p>
+            <h2>{pokemon?.name.toUpperCase()}</h2>
+            <p>Weight: {pokemon?.weight} kg</p>
             <Collapse className={styles.collapse}>
               <Panel header="STATS" key="1" className={styles["collapse-item"]}>
                 <ol className={styles["collapse-list"]}>
-                  {pokemon?.data?.pokemon_v2_pokemon[0]?.pokemon_v2_pokemonstats.map(
-                    (item, index) => (
-                      <li className={styles["list-item"]} key={index}>
-                        {item?.pokemon_v2_stat?.name} - {item?.base_stat}
-                      </li>
-                    )
-                  )}
+                  {pokemon?.stats.map((item, index) => (
+                    <li className={styles["list-item"]} key={index}>
+                      {item?.pokemon_v2_stat?.name} - {item?.base_stat}
+                    </li>
+                  ))}
                 </ol>
               </Panel>
               <Panel header="MOVES" key="2" className={styles["collapse-item"]}>
                 <ol className={styles["collapse-list"]}>
-                  {pokemon?.data?.pokemon_v2_pokemon[0]?.pokemon_v2_pokemonmoves.map(
-                    (item, index) => (
-                      <li className={styles["list-item"]} key={index}>
-                        {item?.pokemon_v2_move?.name}
-                      </li>
-                    )
-                  )}
+                  {pokemon.moves.map((item, index) => (
+                    <li className={styles["list-item"]} key={index}>
+                      {item?.pokemon_v2_move?.name}
+                    </li>
+                  ))}
                 </ol>
               </Panel>
               <Panel
@@ -135,28 +91,23 @@ export default function PokemonPage({
                 className={styles["collapse-item"]}
               >
                 <ol className={styles["collapse-list"]}>
-                  {pokemon?.data?.pokemon_v2_pokemon[0]?.pokemon_v2_pokemonabilities.map(
-                    (item, index) => (
-                      <li className={styles["list-item"]} key={index}>
-                        {item?.pokemon_v2_ability?.name}
-                      </li>
-                    )
-                  )}
+                  {pokemon?.ability.map((item, index) => (
+                    <li className={styles["list-item"]} key={index}>
+                      {item?.pokemon_v2_ability?.name}
+                    </li>
+                  ))}
                 </ol>
               </Panel>
             </Collapse>
           </div>
         </div>
         <div>
-          <Link
-            href={`/evolution/${pokemon?.data?.pokemon_v2_pokemon[0]?.pokemon_v2_pokemonspecy?.evolution_chain_id}`}
-          >
+          <Link href={`/evolution/${pokemon?.evolution}`}>
             <Button
               type="dashed"
               style={{ display: "block", margin: "0 auto" }}
             >
-              CHECK {pokemon?.data?.pokemon_v2_pokemon[0]?.name.toUpperCase()}{" "}
-              EVOLUTION
+              CHECK {pokemon?.name.toUpperCase()} EVOLUTION
             </Button>
           </Link>
         </div>

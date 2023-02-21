@@ -1,8 +1,8 @@
-import Link from "next/link";
-import { imageLoader } from "../pokemons";
-import Image from "next/image";
-import styles from "@/styles/Home.module.css";
 import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import styles from "@/styles/Home.module.css";
+import { imageLoader } from "@/services";
 
 export default function PokemonItem({
   id,

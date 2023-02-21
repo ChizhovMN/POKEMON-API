@@ -1,9 +1,9 @@
 import React from "react";
-import styles from "@/styles/Home.module.css";
 import { Input } from "antd";
 import PageBtn from "./pageBtn";
-import { HeaderProps } from "./types";
-import PokemonLogo from "./components/headerLogo";
+import { PokemonLogo } from "./headerLogo";
+import { HeaderProps } from "../types";
+import styles from "@/styles/Home.module.css";
 
 const { Search } = Input;
 

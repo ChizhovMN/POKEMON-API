@@ -4,6 +4,29 @@ export interface PokemonPage {
     pokemon_v2_pokemon_aggregate: { aggregate: { count: number } };
   };
 }
+export interface PokemonPageType {
+  pokemons: PokemonLink[];
+  count: number;
+}
+type PokemonStats = {
+  id: number;
+  base_stat: number;
+  pokemon_v2_stat: NameID;
+};
+
+export interface PokemonDescriptionType {
+  id: number;
+  name: string;
+  weight: number;
+  evolution: number;
+  ability: {
+    pokemon_v2_ability: NameID;
+  }[];
+  moves: {
+    pokemon_v2_move: NameID;
+  }[];
+  stats: PokemonStats[];
+}
 export interface PokemonType {
   data: {
     pokemon_v2_pokemon: {
@@ -18,11 +41,7 @@ export interface PokemonType {
       pokemon_v2_pokemonmoves: {
         pokemon_v2_move: NameID;
       }[];
-      pokemon_v2_pokemonstats: {
-        id: number;
-        base_stat: number;
-        pokemon_v2_stat: NameID;
-      }[];
+      pokemon_v2_pokemonstats: PokemonStats[];
       weight: number;
     }[];
   };

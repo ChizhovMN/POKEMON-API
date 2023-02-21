@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from "react";
-import useSWR from "swr";
-import styles from "@/styles/Home.module.css";
-import PageBtn from "../pageBtn";
-import CreatePokemonTable from "./pokemonTable";
-import { PokemonPage } from "../types";
 import { useRouter } from "next/router";
-import SearchCounter from "./searchCounter";
-import { fetcherGraphQL } from "../pokemons";
+import useSWR from "swr";
 import { useDebouncedCallback } from "use-debounce";
+import PageBtn from "./pageBtn";
+import SearchCounter from "./searchCounter";
+import PokemonTable from "./pokemonTable";
+import { PokemonPageType } from "../types";
+import styles from "@/styles/Home.module.css";
+import { fetcherGraphQL } from "@/services";
 
 export default function PaginationPage({
   pokemonPage,
   search,
   page,
 }: {
-  pokemonPage: PokemonPage;
+  pokemonPage: PokemonPageType;
   search: string;
   page: { limit: number; offset: number };
 }) {
@@ -39,11 +39,11 @@ export default function PaginationPage({
       )
   );
 
-  const [pokemons, setPokemons] = useState<PokemonPage>(data || pokemonPage);
-  const pages = Math.floor(
-    pokemons?.data?.pokemon_v2_pokemon_aggregate.aggregate.count /
-      pagination.limit
+  const [pokemons, setPokemons] = useState<PokemonPageType>(
+    data || pokemonPage
   );
+
+  const pages = Math.floor(pokemons.count / pagination.limit);
   useEffect(() => {
     if (data) {
       setPokemons(data);
@@ -60,26 +60,16 @@ export default function PaginationPage({
       undefined,
       { shallow: true }
     );
-    if (
-      pokemons.data.pokemon_v2_pokemon_aggregate.aggregate.count <
-      pagination.offset
-    ) {
+    if (pokemons.count < pagination.offset) {
       setPagination((prevState) => ({
         ...prevState,
         offset:
-          Math.floor(
-            pokemons?.data?.pokemon_v2_pokemon_aggregate.aggregate.count /
-              pagination.limit
-          ) * pagination.limit,
+          Math.floor(pokemons.count / pagination.limit) * pagination.limit,
       }));
     }
-  }, [data, pokemons.data.pokemon_v2_pokemon_aggregate.aggregate.count]);
+  }, [data, pokemons.count]);
   const handleClickNext = () => {
-    if (
-      pokemons.data.pokemon_v2_pokemon_aggregate.aggregate.count <
-      pagination.offset + pagination.limit
-    )
-      return;
+    if (pokemons.count < pagination.offset + pagination.limit) return;
     setPagination((prevState) => ({
       ...prevState,
       offset: pagination.offset + pagination.limit,
@@ -94,12 +84,9 @@ export default function PaginationPage({
   };
   return (
     <>
-      <SearchCounter
-        search={search}
-        results={pokemons.data.pokemon_v2_pokemon_aggregate.aggregate.count}
-      />
+      <SearchCounter search={search} results={pokemons.count} />
       <div className={styles["main-table"]}>
-        {CreatePokemonTable(pokemons.data.pokemon_v2_pokemon)}
+        {PokemonTable(pokemons.pokemons)}
       </div>
       <div className={styles["main-btns"]}>
         <PageBtn btnName={"<"} handleClick={() => handleClickPrevious()} />

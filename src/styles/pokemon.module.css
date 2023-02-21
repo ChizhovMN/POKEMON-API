@@ -1,14 +1,5 @@
-.header {
+.pokemon-wrapper {
   display: flex;
-  padding: 1rem;
-  justify-content: space-between;
-  align-items: center;
-}
-.main {
-  display: flex;
-  flex-grow: 1;
-  max-width: 1280px;
-  margin: 0 auto;
 }
 .pokemon-info {
   display: flex;
