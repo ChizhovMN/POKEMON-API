@@ -1,0 +1,11 @@
+.pokemon-description {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.pokemon-evolution {
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}

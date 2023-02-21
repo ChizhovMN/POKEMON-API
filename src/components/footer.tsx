@@ -1,6 +1,6 @@
 import React from "react";
-import styles from "@/styles/Home.module.css";
-export default function Footer(): JSX.Element {
+import styles from "@/styles/global.module.css";
+export default function Footer() {
   return (
     <footer className={styles.footer}>
       <div>M.CHIZHOV</div>

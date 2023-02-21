@@ -1,0 +1,14 @@
+.welcome-main {
+  padding: 1rem;
+}
+.welcome-text {
+  text-align: right;
+}
+.welcome-list {
+  max-width: fit-content;
+  margin: 0 0 0 auto;
+}
+.pokemon-link {
+  display: block;
+  text-align: center;
+}

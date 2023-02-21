@@ -1,12 +1,14 @@
 import React from "react";
-import styles from "@/styles/Home.module.css";
 import { Input } from "antd";
 import PageBtn from "./pageBtn";
-import { HeaderProps } from "./types";
+import { PokemonLogo } from "./headerLogo";
+import { HeaderProps } from "../types";
+import styles from "@/styles/Home.module.css";
 
 const { Search } = Input;
 
 export default function Header({
+  searchField,
   pokemonsCounter,
   btnNameAllView,
   btnNamePageView,
@@ -16,13 +18,18 @@ export default function Header({
 }: HeaderProps) {
   return (
     <header className={styles.header}>
-      <h1>POKEMONS API</h1>
+      <h1>
+        <PokemonLogo href="/" />
+      </h1>
 
       <div className={styles["header-btns"]}>
         <Search
           placeholder="input search text"
+          defaultValue={searchField}
           style={{ width: 200 }}
-          onChange={handleSearch}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+            handleSearch(event)
+          }
         />
         <PageBtn btnName={btnNameAllView} handleClick={handleClickAllView} />
         <PageBtn btnName={btnNamePageView} handleClick={handleClickPageView} />
