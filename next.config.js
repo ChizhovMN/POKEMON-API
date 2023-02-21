@@ -12,7 +12,8 @@ module.exports = {
         pathname: "/PokeAPI/sprites/master/sprites/pokemon/**",
       },
     ],
+    loader: "akamai",
+    path: "",
   },
 };
-
 module.exports = nextConfig;
