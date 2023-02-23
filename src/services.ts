@@ -15,7 +15,10 @@ export const fetcherGraphQL = (
 ): Promise<PokemonPageType> =>
   fetch("https://beta.pokeapi.co/graphql/v1beta", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Method-Used": "graphiql",
+    },
     body: JSON.stringify({
       query: `query getPokemons($offset: Int = 0, $limit: Int = 16, $_like: String = "%${search}%") {
           pokemon_v2_pokemon(offset: $offset, limit: $limit, where: {name: {_ilike:$_like }}) {
@@ -54,7 +57,10 @@ export const fetcherPokemonType = (
 ): Promise<PokemonDescriptionType> =>
   fetch("https://beta.pokeapi.co/graphql/v1beta", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Method-Used": "graphiql",
+    },
     body: JSON.stringify({
       query: `query getPokemon($id: Int_comparison_exp = {}) {
         pokemon_v2_pokemon(where: {id: {_eq: ${id}}}) {
@@ -120,7 +126,10 @@ export const fetcherPokemonEvolution = (
 ): Promise<PokemonEvolution> =>
   fetch("https://beta.pokeapi.co/graphql/v1beta", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Method-Used": "graphiql",
+    },
     body: JSON.stringify({
       query: `query MyQuery {
         pokemon_v2_evolutionchain(where: {id: {_eq: ${id}}}) {

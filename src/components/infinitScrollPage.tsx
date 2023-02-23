@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { Waypoint } from "react-waypoint";
+import React, { useEffect, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import PokemonTable from "./pokemonTable";
 import SearchCounter from "./searchCounter";
@@ -21,13 +20,21 @@ export default function InfiniteScrollPage({
     limit: 16,
   });
   const [pokemons, setPokemons] = useState<PokemonPageType>(pokemonPage);
+  const refresh = () => {
+    setPokemons((prevState) => ({ ...prevState, pokemons: [], count: 0 }));
+    setPagination((prevState) => ({
+      ...prevState,
+      offset: 0,
+    }));
+  };
   const loadMoreData = () => {
     if (loading) {
       return;
     }
-    if (pokemons.count < pagination.offset) {
-      setEnd(true);
-    }
+    // if (pokemons.count <= pokemons.pokemons.length) {
+    //   setEnd(true);
+    //   return;
+    // }
     setLoading(true);
     fetcherGraphQL(
       pagination.offset + pagination.limit,
@@ -41,13 +48,22 @@ export default function InfiniteScrollPage({
         }));
         setPokemons((prevState) => ({
           ...prevState,
-          pokemons: [...pokemons.pokemons, ...data.pokemons],
+          pokemons: search.length
+            ? [...prevState.pokemons, ...data.pokemons]
+            : [...pokemons.pokemons, ...data.pokemons],
           count: data.count,
         }));
+        console.log("DATA", data);
         setLoading(false);
       })
       .finally(() => setLoading(false));
   };
+  useEffect(() => {
+    setEnd(false);
+    refresh();
+    loadMoreData();
+  }, [search]);
+
   return (
     <>
       <SearchCounter search={search} results={pokemons.count} />
@@ -63,12 +79,6 @@ export default function InfiniteScrollPage({
           pullDownToRefreshContent={<h3>Release to refresh</h3>}
         >
           {PokemonTable(pokemons.pokemons)}
-          {!loading && !end && (
-            <Waypoint
-              scrollableAncestor={document.getElementById("scrollableDiv")}
-              onEnter={loadMoreData}
-            />
-          )}
         </InfiniteScroll>
       </div>
     </>
